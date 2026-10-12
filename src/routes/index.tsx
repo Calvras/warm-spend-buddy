@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { MobileHome } from '@/components/mobile-subscriptions'
+import { CardIntro } from '@/components/welcome-flow'
 export const Route = createFileRoute('/')({
- head: () => ({meta:[{title:'Subscription Tracker — Daniel Smith'},{name:'description',content:'Balance, upcoming payments, and all subscriptions.'},{property:'og:title',content:'Subscription Tracker — Daniel Smith'},{property:'og:description',content:'Balance, upcoming payments, and all subscriptions.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),
- component: MobileHome,
+ head: () => ({meta:[{title:'Welcome — Subscription Tracker'},{name:'description',content:'Your subscription tracker starts here.'},{property:'og:title',content:'Welcome — Subscription Tracker'},{property:'og:description',content:'Your subscription tracker starts here.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),
+ component: CardIntro,
 })

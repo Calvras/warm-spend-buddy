@@ -10,5 +10,5 @@
 <!-- LOVABLE:END -->
 
 ## Application structure
-- Keep the subscription tracker frontend-only, with the home screen at / and the linked subscriptions screen at /subscriptions; React state handles expansion without adding backend functionality.
+- Keep the tracker frontend-only: / shows the animated intro, /auth and /connect-card simulate onboarding, /home shows the overview, and /subscriptions shows the list; no credentials or card data are transmitted or persisted.
 - Define visual styling and semantic palette in src/styles.css and share the mobile screen components and brand marks between routes to maintain visual consistency.
