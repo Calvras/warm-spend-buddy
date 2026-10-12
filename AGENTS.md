@@ -10,5 +10,5 @@
 <!-- LOVABLE:END -->
 
 ## Application structure
-- Keep the subscription tracker as a frontend-only experience on the index route; demo interactions use React state because this scope is UI only.
-- Define visual styling and semantic palette in src/styles.css and use the shared UI controls to keep the reference-inspired design consistent.
+- Keep the subscription tracker frontend-only, with the home screen at / and the linked subscriptions screen at /subscriptions; React state handles expansion without adding backend functionality.
+- Define visual styling and semantic palette in src/styles.css and share the mobile screen components and brand marks between routes to maintain visual consistency.
