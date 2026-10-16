@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, CalendarDays, ChevronRight, CreditCard, Plus } from 'lucide-react'
+import { ArrowLeft, CalendarDays, ChevronRight, CreditCard, Home, LayoutList, Plus, User } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import avatar from '@/assets/daniel-avatar.asset.json'
