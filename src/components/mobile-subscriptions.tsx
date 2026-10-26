@@ -2,6 +2,7 @@ import { Link, useRouterState, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
   Bell,
+  Building2,
   CalendarDays,
   Check,
   ChevronLeft,
@@ -10,6 +11,7 @@ import {
   CreditCard,
   Home,
   LayoutList,
+  Loader2,
   LogOut,
   Pencil,
   Plus,
@@ -25,6 +27,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { SubscriptionDetail } from '@/components/subscription-detail'
+import { createLinkTokenFn, exchangePublicTokenFn } from '@/lib/plaid-api'
 import {
   getStoredCards,
   saveStoredCards,
@@ -215,8 +218,71 @@ function AddCardModal({
   const [expiry, setExpiry] = useState('')
   const [cvv, setCvv] = useState('')
   const [brand, setBrand] = useState<'visa' | 'mastercard'>('visa')
+  const [isPlaidLoading, setIsPlaidLoading] = useState(false)
+  const [plaidError, setPlaidError] = useState<string | null>(null)
 
   if (!isOpen) return null
+
+  const handlePlaidConnect = async () => {
+    setIsPlaidLoading(true)
+    setPlaidError(null)
+    try {
+      const res = await createLinkTokenFn()
+      if (res.error || !res.link_token) {
+        setPlaidError(res.error || 'Failed to start bank connection')
+        setIsPlaidLoading(false)
+        return
+      }
+
+      if (typeof (window as any).Plaid === 'undefined') {
+        setPlaidError('Plaid interface is loading. Please tap again.')
+        setIsPlaidLoading(false)
+        return
+      }
+
+      const handler = (window as any).Plaid.create({
+        token: res.link_token,
+        onSuccess: async (public_token: string, metadata: any) => {
+          setIsPlaidLoading(true)
+          const exchangeRes = await exchangePublicTokenFn({
+            data: {
+              public_token,
+              institution_name: metadata?.institution?.name,
+            },
+          })
+
+          if (exchangeRes.error) {
+            setPlaidError(exchangeRes.error)
+            setIsPlaidLoading(false)
+            return
+          }
+
+          if (exchangeRes.cards && exchangeRes.cards.length > 0) {
+            for (const c of exchangeRes.cards) {
+              onCardAdded(c)
+            }
+          }
+
+          if (exchangeRes.subscriptions && exchangeRes.subscriptions.length > 0) {
+            const currentSubs = getStoredSubscriptions()
+            saveStoredSubscriptions([...exchangeRes.subscriptions, ...currentSubs])
+          }
+
+          setIsPlaidLoading(false)
+          onClose()
+        },
+        onExit: (err: any) => {
+          setIsPlaidLoading(false)
+          if (err) console.warn('Plaid exit:', err)
+        },
+      })
+
+      handler.open()
+    } catch (e: any) {
+      setPlaidError(e?.message || 'Error initializing bank link')
+      setIsPlaidLoading(false)
+    }
+  }
 
   const handleCardNumberChange = (val: string) => {
     const digits = val.replace(/\D/g, '').slice(0, 16)
@@ -259,9 +325,9 @@ function AddCardModal({
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={onClose} />
-      <div className="relative z-50 w-full max-w-[420px] mx-auto bg-background rounded-t-[28px] p-6 shadow-2xl border-t border-border animate-in slide-in-from-bottom duration-300">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-bold">Add Another Card</h2>
+      <div className="relative z-50 w-full max-w-[420px] mx-auto bg-background rounded-t-[28px] p-6 shadow-2xl border-t border-border animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold">Add Payment Card</h2>
           <button
             type="button"
             onClick={onClose}
@@ -270,6 +336,39 @@ function AddCardModal({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Plaid Option */}
+        <Button
+          type="button"
+          onClick={handlePlaidConnect}
+          disabled={isPlaidLoading}
+          className="welcome-primary w-full h-11 bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 text-xs mb-3 cursor-pointer"
+        >
+          {isPlaidLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Connecting to Bank...</span>
+            </>
+          ) : (
+            <>
+              <Building2 className="w-4 h-4" />
+              <span>Connect via Bank (Plaid)</span>
+            </>
+          )}
+        </Button>
+
+        {plaidError && (
+          <p className="text-xs text-destructive text-center bg-destructive/10 p-2 rounded-lg mb-3">
+            {plaidError}
+          </p>
+        )}
+
+        <div className="flex items-center gap-3 my-3">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-[11px] text-muted-foreground uppercase font-medium">Or enter manually</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="welcome-field">
             Name on card

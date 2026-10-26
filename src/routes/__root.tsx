@@ -124,6 +124,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js" async />
       </head>
       <body>
         {children}
