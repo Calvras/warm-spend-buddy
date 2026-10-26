@@ -5,8 +5,8 @@ services:
     plan: free
     region: oregon
     branch: main
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: bun install && bun run build
+    startCommand: node .output/server/index.mjs
     envVars:
       - key: NODE_VERSION
         value: 20
