@@ -4,10 +4,12 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
+import { BottomNav } from "@/components/mobile-subscriptions";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
@@ -118,11 +120,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const showNav = ["/home", "/subscriptions", "/profile"].some((p) =>
+    pathname.startsWith(p),
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      {showNav && <BottomNav />}
     </QueryClientProvider>
   );
 }
