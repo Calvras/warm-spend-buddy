@@ -3,9 +3,33 @@ import {
   X,
   CreditCard,
   Trash2,
+  ArrowRight,
+  ExternalLink,
+  ChevronRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { type SubscriptionItem, type CardItem } from '@/lib/cards-store'
+
+// Cancellation URLs for each provider
+const CANCEL_URLS: Record<string, string> = {
+  spotify: 'https://www.spotify.com/account/subscription/',
+  netflix: 'https://www.netflix.com/youraccount',
+  youtube: 'https://www.youtube.com/paid_memberships',
+  adobe: 'https://account.adobe.com/plans',
+  medium: 'https://medium.com/me/membership',
+  transit: 'https://app.transit.app/',
+}
+
+const CANCEL_REASONS = [
+  "I'm not using it enough",
+  "It's too expensive",
+  "I found a better alternative",
+  "I'm taking a break",
+  "I don't need it anymore",
+]
+
+// 3-step flow: 'idle' → 'reason' → 'confirm'
+type CancelStep = 'idle' | 'reason' | 'confirm'
 
 interface SubscriptionDetailProps {
   subscription: SubscriptionItem
@@ -20,7 +44,11 @@ export function SubscriptionDetail({
   onClose,
   onCancelSubscription,
 }: SubscriptionDetailProps) {
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [cancelStep, setCancelStep] = useState<CancelStep>('idle')
+  const [selectedReason, setSelectedReason] = useState<string | null>(null)
+  const [cancelled, setCancelled] = useState(false)
+
+  const cancelUrl = CANCEL_URLS[subscription.brand] ?? `https://www.google.com/search?q=cancel+${encodeURIComponent(subscription.name)}+subscription`
 
   const renderServiceIcon = (brand: string) => {
     switch (brand) {
@@ -196,44 +224,120 @@ export function SubscriptionDetail({
             </div>
           </div>
 
-          {/* Cancel Subscription Action (Clean, minimal matching signup style) */}
+          {/* ── Cancel Subscription Flow ── */}
           <div className="pt-4">
-            {!showCancelConfirm ? (
+
+            {/* Step 0: idle — show button */}
+            {cancelStep === 'idle' && (
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowCancelConfirm(true)}
+                onClick={() => setCancelStep('reason')}
                 className="w-full h-11 rounded-xl text-xs font-semibold text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30 gap-1.5 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
-                Cancel Subscription Tracker
+                Cancel Subscription
               </Button>
-            ) : (
-              <div className="p-3.5 rounded-xl border border-destructive/40 bg-destructive/5 space-y-2.5 animate-in fade-in duration-200">
-                <p className="text-xs font-medium text-foreground text-center">
-                  Remove <span className="font-bold">{subscription.name}</span> from tracker?
-                </p>
-                <div className="flex gap-2">
+            )}
+
+            {/* Step 1: Pick a reason */}
+            {cancelStep === 'reason' && (
+              <div className="rounded-2xl border border-border bg-accent/20 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="px-4 pt-4 pb-3 border-b border-border/60">
+                  <p className="text-sm font-bold text-foreground">Why are you cancelling?</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Help us improve. Your answer won't affect anything.</p>
+                </div>
+                <div className="divide-y divide-border/60">
+                  {CANCEL_REASONS.map((reason) => (
+                    <button
+                      key={reason}
+                      type="button"
+                      onClick={() => {
+                        setSelectedReason(reason)
+                        setCancelStep('confirm')
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 text-left text-xs font-medium text-foreground hover:bg-accent/60 transition-colors cursor-pointer"
+                    >
+                      <span>{reason}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                    </button>
+                  ))}
+                </div>
+                <div className="px-4 py-3 border-t border-border/60">
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowCancelConfirm(false)}
-                    className="flex-1 text-xs"
+                    onClick={() => setCancelStep('idle')}
+                    className="w-full text-xs text-muted-foreground"
                   >
-                    Keep
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => onCancelSubscription(subscription.id)}
-                    className="flex-1 text-xs bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Yes, Remove
+                    Never mind, keep it
                   </Button>
                 </div>
               </div>
             )}
+
+            {/* Step 2: Confirm + direct link */}
+            {cancelStep === 'confirm' && !cancelled && (
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="px-4 pt-4 pb-3">
+                  <p className="text-sm font-bold text-foreground">Ready to cancel?</p>
+                  {selectedReason && (
+                    <p className="text-[11px] text-muted-foreground mt-0.5 italic">"{selectedReason}"</p>
+                  )}
+                  <p className="text-[12px] text-muted-foreground mt-2 leading-relaxed">
+                    We'll remove <span className="font-semibold text-foreground">{subscription.name}</span> from your Paidly tracker and open its cancellation page so you can finish on their end.
+                  </p>
+                </div>
+
+                {/* Primary: open provider page + remove from tracker */}
+                <div className="px-4 pb-3 space-y-2">
+                  <a
+                    href={cancelUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      onCancelSubscription(subscription.id)
+                      setCancelled(true)
+                    }}
+                    className="flex items-center justify-between w-full h-11 px-4 rounded-xl bg-destructive text-destructive-foreground text-xs font-semibold hover:bg-destructive/90 transition-colors"
+                  >
+                    <span>Cancel on {subscription.name}</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setCancelStep('idle'); setSelectedReason(null) }}
+                    className="w-full text-xs text-muted-foreground"
+                  >
+                    Go back
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Done state */}
+            {cancelled && (
+              <div className="rounded-2xl border border-border bg-accent/30 px-4 py-5 text-center space-y-1 animate-in fade-in duration-300">
+                <p className="text-sm font-bold text-foreground">Removed from Paidly ✓</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Finish the rest on {subscription.name}'s website if you haven't already.
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                  className="mt-1 text-xs"
+                >
+                  Close <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              </div>
+            )}
+
           </div>
         </div>
       </aside>
