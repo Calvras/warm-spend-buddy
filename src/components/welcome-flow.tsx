@@ -18,13 +18,14 @@ import {
 } from '@/lib/cards-store'
 import { createLinkTokenFn, exchangePublicTokenFn } from '@/lib/plaid-api'
 
-function CardVisual({ checking = false }: { checking?: boolean }) {
+function CardVisual({ checking = false, cardNumber = '••••', holderName = 'YOUR NAME', expiry = '••/••' }: { checking?: boolean; cardNumber?: string; holderName?: string; expiry?: string }) {
+  const last4 = cardNumber.replace(/\s/g, '').slice(-4) || '••••'
   return (
     <div className={`welcome-card ${checking ? 'card-checking' : ''}`}>
       <div className="welcome-card-top">
         <div className="flex items-center gap-1.5">
           <CreditCard className="w-5 h-5 text-current opacity-85" />
-          <span>Debit Card</span>
+          <span>Payment Card</span>
         </div>
       </div>
       <div className="card-chip">
@@ -32,10 +33,10 @@ function CardVisual({ checking = false }: { checking?: boolean }) {
         <i />
         <i />
       </div>
-      <div className="welcome-card-number">•••• &nbsp; •••• &nbsp; •••• &nbsp; 6084</div>
+      <div className="welcome-card-number">•••• &nbsp; •••• &nbsp; •••• &nbsp; {last4}</div>
       <div className="welcome-card-bottom">
-        <span>DANIEL SMITH</span>
-        <span>09/28</span>
+        <span>{holderName.toUpperCase() || 'YOUR NAME'}</span>
+        <span>{expiry || '••/••'}</span>
       </div>
     </div>
   )
@@ -310,8 +311,10 @@ export function AuthScreen() {
 export function ConnectCardScreen() {
   const navigate = useNavigate()
   const [stage, setStage] = useState<'entry' | 'checking' | 'ready'>('entry')
-  const [number, setNumber] = useState('4242 4242 4242 6084')
-  const [expiry, setExpiry] = useState('09/28')
+  const [cardHolderName, setCardHolderName] = useState('')
+  const [number, setNumber] = useState('')
+  const [expiry, setExpiry] = useState('')
+  const [cvv, setCvv] = useState('')
   const [progress, setProgress] = useState(0)
   const [isPlaidLoading, setIsPlaidLoading] = useState(false)
   const [plaidError, setPlaidError] = useState<string | null>(null)
@@ -403,14 +406,14 @@ export function ConnectCardScreen() {
     setStage('checking')
 
     const digits = number.replace(/\s/g, '')
-    const last4 = digits.length >= 4 ? digits.slice(-4) : '6084'
+    const last4 = digits.length >= 4 ? digits.slice(-4) : '0000'
     const newCard: CardItem = {
       id: `card-${Date.now()}`,
-      holder: 'Daniel Smith',
-      number: number.trim() || '4242 4242 4242 6084',
+      holder: cardHolderName.trim() || 'Account Holder',
+      number: number.trim(),
       last4: last4,
-      expiry: expiry.trim() || '09/28',
-      cvv: '123',
+      expiry: expiry.trim(),
+      cvv: cvv.trim(),
       brand: digits.startsWith('5') ? 'mastercard' : 'visa',
       isDefault: true,
     }
@@ -431,7 +434,12 @@ export function ConnectCardScreen() {
       </header>
 
       <div className="connect-card-art">
-        <CardVisual checking={stage === 'checking'} />
+        <CardVisual
+          checking={stage === 'checking'}
+          cardNumber={number || '••••'}
+          holderName={cardHolderName || 'YOUR NAME'}
+          expiry={expiry || '••/••'}
+        />
         {stage === 'ready' && (
           <span className="card-success">
             <Check />
@@ -490,7 +498,13 @@ export function ConnectCardScreen() {
           <form className="onboarding-form" onSubmit={handleManualSubmit}>
             <label className="welcome-field">
               Name on card
-              <Input required defaultValue="Daniel Smith" autoComplete="name" />
+              <Input
+                required
+                value={cardHolderName}
+                onChange={(e) => setCardHolderName(e.target.value)}
+                autoComplete="cc-name"
+                placeholder="Your full name"
+              />
             </label>
             <label className="welcome-field">
               Card number
@@ -502,6 +516,7 @@ export function ConnectCardScreen() {
                 }
                 pattern="[0-9 ]{16,23}"
                 inputMode="numeric"
+                placeholder="1234 5678 9012 3456"
                 autoComplete="cc-number"
               />
             </label>
@@ -522,8 +537,10 @@ export function ConnectCardScreen() {
                 Security code (CVV)
                 <Input
                   required
-                  defaultValue="123"
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   pattern="[0-9]{3,4}"
+                  placeholder="CVV"
                   maxLength={4}
                   inputMode="numeric"
                   autoComplete="cc-csc"

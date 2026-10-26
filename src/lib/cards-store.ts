@@ -45,34 +45,13 @@ export interface SubscriptionItem {
   bannerGradient: string;
 }
 
-const DEFAULT_CARDS: CardItem[] = [
-  {
-    id: "card-1",
-    holder: "Daniel Smith",
-    number: "4242 4242 4242 6084",
-    last4: "6084",
-    expiry: "09/27",
-    cvv: "123",
-    brand: "visa",
-    isDefault: true,
-  },
-  {
-    id: "card-2",
-    holder: "Daniel Smith",
-    number: "5555 4444 3333 1192",
-    last4: "1192",
-    expiry: "12/28",
-    cvv: "884",
-    brand: "mastercard",
-    isDefault: false,
-  },
-];
+const DEFAULT_CARDS: CardItem[] = [];
 
 const DEFAULT_PROFILE: UserProfile = {
-  name: "Daniel Smith",
-  email: "daniel@example.com",
+  name: "Account Holder",
+  email: "user@example.com",
   phone: "+1 (555) 019-2834",
-  initials: "DS",
+  initials: "AH",
 };
 
 const DEFAULT_NOTIFICATIONS: NotificationSettings = {
@@ -94,15 +73,31 @@ const LEGACY_FAKE_SUB_IDS = new Set([
   "sub-transit",
 ]);
 
+// Helper to identify demo cards
+export function isDemoCard(card: Partial<CardItem>): boolean {
+  if (!card) return false;
+  if (card.id === "card-1" || card.id === "card-2") return true;
+  if (card.holder === "Daniel Smith") return true;
+  if (card.number === "4242 4242 4242 6084" && card.id === "card-1") return true;
+  if (card.number === "5555 4444 3333 1192") return true;
+  return false;
+}
+
 export function getStoredCards(): CardItem[] {
-  if (typeof window === "undefined") return DEFAULT_CARDS;
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem("paidly_cards");
-    if (!raw) return DEFAULT_CARDS;
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CARDS;
+    if (!Array.isArray(parsed)) return [];
+    // Strictly filter out legacy demo cards (card-1, card-2, Daniel Smith)
+    const cleaned = parsed.filter((c: CardItem) => !isDemoCard(c));
+    if (cleaned.length !== parsed.length) {
+      saveStoredCards(cleaned);
+    }
+    return cleaned;
   } catch {
-    return DEFAULT_CARDS;
+    return [];
   }
 }
 
@@ -114,12 +109,13 @@ export function saveStoredCards(cards: CardItem[]): void {
 }
 
 export function getActiveCardId(): string {
-  if (typeof window === "undefined") return "card-1";
+  if (typeof window === "undefined") return "";
   try {
     const active = localStorage.getItem("paidly_active_card_id");
-    return active || "card-1";
+    if (active === "card-1" || active === "card-2") return "";
+    return active || "";
   } catch {
-    return "card-1";
+    return "";
   }
 }
 

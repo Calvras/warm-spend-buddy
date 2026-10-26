@@ -453,15 +453,7 @@ export function MobileHome() {
     }
   }, [navigate])
 
-  const currentCard = cards[activeCardIndex] || cards[0] || {
-    id: 'card-1',
-    holder: 'Daniel Smith',
-    number: '4242 4242 4242 6084',
-    last4: '6084',
-    expiry: '09/27',
-    cvv: '123',
-    brand: 'visa',
-  }
+  const currentCard = cards[activeCardIndex] || cards[0] || null
 
   const handleCardAdded = (newCard: CardItem) => {
     const updated = [...cards, newCard]
@@ -497,7 +489,7 @@ export function MobileHome() {
   }
 
   // Filter subscriptions for the active card; fallback to all if current card has none assigned yet
-  const cardSubscriptions = subscriptions.filter((s) => s.cardId === currentCard.id)
+  const cardSubscriptions = currentCard ? subscriptions.filter((s) => s.cardId === currentCard.id) : []
   const displayedSubscriptions = cardSubscriptions.length > 0 ? cardSubscriptions : subscriptions
   const upcomingSubscriptions = displayedSubscriptions.slice(0, 2)
 
@@ -526,27 +518,40 @@ export function MobileHome() {
 
       {/* Card Section with FlipCard & Dots */}
       <section className="home-card-section">
-        <FlipCard
-          card={currentCard}
-          isFlipped={cardFlipped}
-          onFlip={() => setCardFlipped(!cardFlipped)}
-        />
-        {cards.length > 1 && (
-          <div className="flex items-center justify-center gap-2.5 mt-3.5">
-            {cards.map((c, idx) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => handleSelectCard(idx)}
-                className={`transition-all rounded-full cursor-pointer p-1 -m-1 focus:outline-none ${
-                  idx === activeCardIndex
-                    ? 'w-6 h-2 bg-[var(--balance)]'
-                    : 'w-2 h-2 bg-muted-foreground/30 hover:bg-muted-foreground/60'
-                }`}
-                aria-label={`Switch to card ${idx + 1} (•••• ${c.last4})`}
-              />
-            ))}
-          </div>
+        {currentCard ? (
+          <>
+            <FlipCard
+              card={currentCard}
+              isFlipped={cardFlipped}
+              onFlip={() => setCardFlipped(!cardFlipped)}
+            />
+            {cards.length > 1 && (
+              <div className="flex items-center justify-center gap-2.5 mt-3.5">
+                {cards.map((c, idx) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => handleSelectCard(idx)}
+                    className={`transition-all rounded-full cursor-pointer p-1 -m-1 focus:outline-none ${
+                      idx === activeCardIndex
+                        ? 'w-6 h-2 bg-[var(--balance)]'
+                        : 'w-2 h-2 bg-muted-foreground/30 hover:bg-muted-foreground/60'
+                    }`}
+                    aria-label={`Switch to card ${idx + 1} (•••• ${c.last4})`}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="w-full h-44 rounded-2xl border-2 border-dashed border-border bg-accent/20 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-[var(--balance)] hover:text-foreground transition-all cursor-pointer"
+          >
+            <Plus className="w-7 h-7" />
+            <span className="text-xs font-semibold">Add a card or connect bank</span>
+          </button>
         )}
       </section>
 
@@ -582,7 +587,7 @@ export function MobileHome() {
       <section className="home-subscriptions">
         <div className="home-section-title">
           <h2>
-            {cardSubscriptions.length > 0 ? `•••• ${currentCard.last4} Subscriptions` : 'All Subscriptions'}
+            {cardSubscriptions.length > 0 && currentCard ? `•••• ${currentCard.last4} Subscriptions` : 'All Subscriptions'}
           </h2>
           {displayedSubscriptions.length > 0 && <SeeAll />}
         </div>
