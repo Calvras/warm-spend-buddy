@@ -196,7 +196,7 @@ export function FlipCard({
               <strong>{card.cvv}</strong>
             </span>
           </span>
-          <span className="flip-card-back-note">Sample card — demo only</span>
+          <span className="flip-card-back-note">Authorized cardholder only</span>
         </span>
       </span>
     </button>
@@ -550,31 +550,33 @@ export function MobileHome() {
         )}
       </section>
 
-      {/* Upcoming Payments */}
-      <section className="upcoming mt-5">
-        <h2>Upcoming</h2>
-        <div className="upcoming-pair">
-          {upcomingSubscriptions.map((sub) => (
-            <div
-              className="upcoming-tile cursor-pointer hover:border-border transition-all"
-              key={sub.id}
-              onClick={() => setSelectedSubscription(sub)}
-            >
-              <div className="upcoming-tile-top">
-                <span className="upcoming-icon">
-                  <CalendarDays />
-                </span>
-                <div>
-                  <strong>{sub.price}</strong>
-                  <small>{sub.due}</small>
+      {/* Upcoming Payments (only if subscriptions exist) */}
+      {upcomingSubscriptions.length > 0 && (
+        <section className="upcoming mt-5">
+          <h2>Upcoming</h2>
+          <div className="upcoming-pair">
+            {upcomingSubscriptions.map((sub) => (
+              <div
+                className="upcoming-tile cursor-pointer hover:border-border transition-all"
+                key={sub.id}
+                onClick={() => setSelectedSubscription(sub)}
+              >
+                <div className="upcoming-tile-top">
+                  <span className="upcoming-icon">
+                    <CalendarDays />
+                  </span>
+                  <div>
+                    <strong>{sub.price}</strong>
+                    <small>{sub.due}</small>
+                  </div>
+                  <ChevronRight className="upcoming-chevron" />
                 </div>
-                <ChevronRight className="upcoming-chevron" />
+                <p>{sub.name}</p>
               </div>
-              <p>{sub.name}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Subscriptions List */}
       <section className="home-subscriptions">
@@ -582,26 +584,49 @@ export function MobileHome() {
           <h2>
             {cardSubscriptions.length > 0 ? `•••• ${currentCard.last4} Subscriptions` : 'All Subscriptions'}
           </h2>
-          <SeeAll />
+          {displayedSubscriptions.length > 0 && <SeeAll />}
         </div>
-        <div className="home-list">
-          {displayedSubscriptions.map((item) => (
-            <button
-              type="button"
-              key={item.id}
-              onClick={() => setSelectedSubscription(item)}
-              className={`home-subscription tone-${item.tone} cursor-pointer text-left w-full border-none`}
+        {displayedSubscriptions.length > 0 ? (
+          <div className="home-list">
+            {displayedSubscriptions.map((item) => (
+              <button
+                type="button"
+                key={item.id}
+                onClick={() => setSelectedSubscription(item)}
+                className={`home-subscription tone-${item.tone} cursor-pointer text-left w-full border-none`}
+              >
+                <Brand name={item.brand} />
+                <span className="home-service-text">
+                  <strong>{item.name}</strong>
+                  <small>Renews on {item.nextPayment.split(',')[0]}</small>
+                </span>
+                <span className="home-service-price">{item.price}</span>
+                <ChevronRight className="row-chevron" />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 px-4 rounded-2xl bg-accent/30 border border-dashed border-border space-y-3">
+            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center mx-auto text-muted-foreground">
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-foreground">No Subscriptions Detected</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5 max-w-[220px] mx-auto">
+                Connect your bank to scan and auto-detect your recurring subscriptions.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddModal(true)}
+              className="text-xs rounded-full h-8 cursor-pointer gap-1"
             >
-              <Brand name={item.brand} />
-              <span className="home-service-text">
-                <strong>{item.name}</strong>
-                <small>Renews on {item.nextPayment.split(',')[0]}</small>
-              </span>
-              <span className="home-service-price">{item.price}</span>
-              <ChevronRight className="row-chevron" />
-            </button>
-          ))}
-        </div>
+              <Plus className="w-3.5 h-3.5" />
+              Connect Bank Account
+            </Button>
+          </div>
+        )}
       </section>
 
       <AddCardModal
