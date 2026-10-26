@@ -1,10 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { CardItem, SubscriptionItem } from "@/lib/cards-store";
 
-const PLAID_CLIENT_ID =
-  process.env.PLAID_CLIENT_ID || "6adedf953a2a53000d691f4b";
-const PLAID_SECRET =
-  process.env.PLAID_SECRET || "6e1a726851d385604c21b1ea7bd12e";
+const PLAID_CLIENT_ID = process.env.PLAID_CLIENT_ID;
+const PLAID_SECRET = process.env.PLAID_SECRET;
 const PLAID_ENV = process.env.PLAID_ENV || "sandbox";
 const PLAID_BASE_URL = `https://${PLAID_ENV}.plaid.com`;
 
