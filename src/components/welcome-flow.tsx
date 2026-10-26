@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, LockKeyhole } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, CreditCard, Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import { LegalModal, type LegalDocType } from '@/components/legal-modal'
 
 function DemoCard({checking=false}:{checking?:boolean}) {
  return (
   <div className={`welcome-card ${checking?'card-checking':''}`}>
    <div className="welcome-card-top">
     <div className="flex items-center gap-1.5">
-     <img src="/logo.png" alt="Paidly Logo" className="w-5 h-5 rounded object-cover shadow-xs" />
-     <span>Paidly Tracker</span>
+     <CreditCard className="w-5 h-5 text-current opacity-85" />
+     <span>Debit Card</span>
     </div>
    </div>
    <div className="card-chip"><i/><i/><i/></div>
@@ -47,6 +49,10 @@ export function AuthScreen() {
  const [visible,setVisible]=useState(false)
  const [forgot,setForgot]=useState(false)
  const [sent,setSent]=useState(false)
+ const [agreed,setAgreed]=useState(false)
+ const [errorMsg,setErrorMsg]=useState<string|null>(null)
+ const [legalDoc,setLegalDoc]=useState<LegalDocType>(null)
+
  return (
   <main className="mobile-screen onboarding-screen">
    <header className="onboarding-top">
@@ -70,10 +76,62 @@ export function AuthScreen() {
      <Button onClick={()=>{setForgot(false);setSent(false)}}>Back to login</Button>
     </div>
    ) : (
-    <form className="onboarding-form" onSubmit={e=>{e.preventDefault();if(forgot)setSent(true);else navigate({to:'/connect-card'})}}>
+    <form className="onboarding-form" onSubmit={e=>{
+      e.preventDefault();
+      if (forgot) {
+        setSent(true);
+      } else {
+        if (!login && !agreed) {
+          setErrorMsg("Please accept the Terms of Service and Privacy Policy to continue.");
+          return;
+        }
+        setErrorMsg(null);
+        navigate({to:'/connect-card'});
+      }
+    }}>
      {!login&&!forgot&&<label className="welcome-field">Full name<Input required autoComplete="off" placeholder="Daniel Smith"/></label>}
      <label className="welcome-field">Email address<Input type="email" required autoComplete="off" placeholder="daniel@example.com"/></label>
      {!forgot&&<label className="welcome-field">Password<div className="password-field"><Input type={visible?'text':'password'} required minLength={6} autoComplete="off" placeholder="At least 6 characters"/><Button type="button" variant="ghost" size="icon" aria-label={visible?'Hide password':'Show password'} onClick={()=>setVisible(!visible)}>{visible?<EyeOff/>:<Eye/>}</Button></div></label>}
+     
+     {/* Terms of Service & Privacy Policy checkbox for Sign up */}
+     {!login && !forgot && (
+      <div className="space-y-1.5 pt-0.5">
+       <div className="flex items-start gap-2.5 text-xs text-muted-foreground leading-snug">
+        <Checkbox
+          id="terms-agreement"
+          checked={agreed}
+          onCheckedChange={(val) => {
+            setAgreed(!!val);
+            if (val) setErrorMsg(null);
+          }}
+          className="mt-0.5 cursor-pointer"
+        />
+        <label htmlFor="terms-agreement" className="select-none cursor-pointer">
+          By using Paidly, you agree to our{" "}
+          <button
+            type="button"
+            onClick={() => setLegalDoc("terms")}
+            className="text-foreground font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity cursor-pointer"
+          >
+            Terms of Service
+          </button>{" "}
+          and{" "}
+          <button
+            type="button"
+            onClick={() => setLegalDoc("privacy")}
+            className="text-foreground font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+          .
+        </label>
+       </div>
+       {errorMsg && (
+        <p className="text-[11px] text-destructive font-medium pl-6">{errorMsg}</p>
+       )}
+      </div>
+     )}
+
      {login&&!forgot&&<Button type="button" variant="link" className="forgot-link" onClick={()=>setForgot(true)}>Forgot password?</Button>}
      <Button type="submit" className="welcome-primary">{forgot?'Preview reset email':login?'Log in':'Create account'}<ArrowRight/></Button>
     </form>
@@ -84,11 +142,17 @@ export function AuthScreen() {
     ) : (
      <>
       <span>{login?'New here?':'Already have an account?'}</span>
-      <Button variant="link" onClick={()=>setLogin(!login)}>{login?'Sign up':'Log in'}</Button>
+      <Button variant="link" onClick={()=>{
+        setLogin(!login);
+        setErrorMsg(null);
+      }}>{login?'Sign up':'Log in'}</Button>
      </>
     )}
    </div>
    <p className="welcome-disclaimer"><LockKeyhole size={12}/> Demo only. Use fictional details.</p>
+
+   {/* Swipe-up Legal Modal */}
+   <LegalModal type={legalDoc} onClose={() => setLegalDoc(null)} />
   </main>
  )
 }
