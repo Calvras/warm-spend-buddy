@@ -18,11 +18,13 @@ import {
   X,
   Mail,
   ShieldCheck,
+  Filter,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { SubscriptionDetail } from '@/components/subscription-detail'
 import {
   getStoredCards,
   saveStoredCards,
@@ -30,9 +32,14 @@ import {
   saveStoredProfile,
   getStoredNotifications,
   saveStoredNotifications,
+  getStoredSubscriptions,
+  saveStoredSubscriptions,
+  getActiveCardId,
+  saveActiveCardId,
   type CardItem,
   type UserProfile,
   type NotificationSettings,
+  type SubscriptionItem,
 } from '@/lib/cards-store'
 
 export function Brand({ name }: { name: string }) {
@@ -61,6 +68,10 @@ export function Brand({ name }: { name: string }) {
           <rect x="2" y="3" width="46" height="32" rx="8" fill="currentColor" />
           <path className="youtube-play" d="m21 12 13 7-13 7z" />
         </svg>
+      ) : name === 'adobe' ? (
+        <span className="font-black text-sm tracking-tighter text-white">Ai</span>
+      ) : name === 'transit' ? (
+        <CalendarDays className="w-6 h-6 text-white" />
       ) : (
         <svg viewBox="0 0 50 40" fill="none" stroke="currentColor" strokeWidth="3">
           <path d="M22 11c-10-11-24 3-17 14 4 7 12 7 17 2l6-6-7-7c-4-4-9-1-7 3l8 8c10 11 27-2 21-14-4-9-15-10-22-3l-4 4" />
@@ -320,13 +331,23 @@ export function MobileHome() {
   const [activeCardIndex, setActiveCardIndex] = useState(0)
   const [cardFlipped, setCardFlipped] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([])
+  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionItem | null>(null)
 
   useEffect(() => {
-    setCards(getStoredCards())
+    const storedCards = getStoredCards()
+    setCards(storedCards)
+    setSubscriptions(getStoredSubscriptions())
+
+    const activeId = getActiveCardId()
+    const foundIdx = storedCards.findIndex((c) => c.id === activeId)
+    if (foundIdx >= 0) {
+      setActiveCardIndex(foundIdx)
+    }
   }, [])
 
   const currentCard = cards[activeCardIndex] || cards[0] || {
-    id: 'default',
+    id: 'card-1',
     holder: 'Daniel Smith',
     number: '4242 4242 4242 6084',
     last4: '6084',
@@ -340,13 +361,43 @@ export function MobileHome() {
     setCards(updated)
     saveStoredCards(updated)
     setActiveCardIndex(updated.length - 1)
+    saveActiveCardId(newCard.id)
     setCardFlipped(false)
   }
+
+  const handleSelectCard = (index: number) => {
+    setActiveCardIndex(index)
+    setCardFlipped(false)
+    if (cards[index]) {
+      saveActiveCardId(cards[index].id)
+    }
+  }
+
+  const handleUpdateSubCard = (subId: string, newCardId: string) => {
+    const updated = subscriptions.map((s) => (s.id === subId ? { ...s, cardId: newCardId } : s))
+    setSubscriptions(updated)
+    saveStoredSubscriptions(updated)
+    if (selectedSubscription && selectedSubscription.id === subId) {
+      setSelectedSubscription({ ...selectedSubscription, cardId: newCardId })
+    }
+  }
+
+  const handleCancelSubscription = (subId: string) => {
+    const updated = subscriptions.filter((s) => s.id !== subId)
+    setSubscriptions(updated)
+    saveStoredSubscriptions(updated)
+    setSelectedSubscription(null)
+  }
+
+  // Filter subscriptions for the active card; fallback to all if current card has none assigned yet
+  const cardSubscriptions = subscriptions.filter((s) => s.cardId === currentCard.id)
+  const displayedSubscriptions = cardSubscriptions.length > 0 ? cardSubscriptions : subscriptions
+  const upcomingSubscriptions = displayedSubscriptions.slice(0, 2)
 
   return (
     <main className="mobile-screen home-screen">
       {/* Clean header: removed 'Active' badge and removed 'Subscription Tracker' subtext */}
-      <header className="flex items-center justify-between mb-4 px-1">
+      <header className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2.5">
           <img
             src="/logo.png"
@@ -366,7 +417,49 @@ export function MobileHome() {
         </Button>
       </header>
 
-      {/* Card Section with Multi-card Switcher */}
+      {/* Interactive Card Switcher Bar */}
+      <section className="mb-3 px-1">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+            Active Card
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            Card {activeCardIndex + 1} of {cards.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {cards.map((c, idx) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => handleSelectCard(idx)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
+                idx === activeCardIndex
+                  ? 'bg-[var(--balance)] text-white shadow-xs ring-2 ring-[var(--balance)]/30'
+                  : 'bg-accent/80 hover:bg-accent text-foreground/80 border border-border/80'
+              }`}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>•••• {c.last4}</span>
+              {c.isDefault && (
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-black/20 font-medium">
+                  Default
+                </span>
+              )}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="px-2.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 bg-accent/40 hover:bg-accent border border-dashed border-border text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Card</span>
+          </button>
+        </div>
+      </section>
+
+      {/* Card Section with FlipCard & Dots */}
       <section className="home-card-section">
         <FlipCard
           card={currentCard}
@@ -379,10 +472,7 @@ export function MobileHome() {
               <button
                 key={c.id}
                 type="button"
-                onClick={() => {
-                  setActiveCardIndex(idx)
-                  setCardFlipped(false)
-                }}
+                onClick={() => handleSelectCard(idx)}
                 className={`transition-all rounded-full ${
                   idx === activeCardIndex
                     ? 'w-5 h-1.5 bg-[var(--balance)]'
@@ -399,32 +489,23 @@ export function MobileHome() {
       <section className="upcoming mt-5">
         <h2>Upcoming</h2>
         <div className="upcoming-pair">
-          {[
-            {
-              name: 'Modern Transit',
-              price: '$80.00',
-              due: 'Due in 2 days',
-              icon: CalendarDays,
-            },
-            {
-              name: 'Grapplers Plus',
-              price: '$51.00',
-              due: 'Due in 5 days',
-              icon: CreditCard,
-            },
-          ].map((item) => (
-            <div className="upcoming-tile" key={item.name}>
+          {upcomingSubscriptions.map((sub) => (
+            <div
+              className="upcoming-tile cursor-pointer hover:border-border transition-all"
+              key={sub.id}
+              onClick={() => setSelectedSubscription(sub)}
+            >
               <div className="upcoming-tile-top">
                 <span className="upcoming-icon">
-                  <item.icon />
+                  <CalendarDays />
                 </span>
                 <div>
-                  <strong>{item.price}</strong>
-                  <small>{item.due}</small>
+                  <strong>{sub.price}</strong>
+                  <small>{sub.due}</small>
                 </div>
                 <ChevronRight className="upcoming-chevron" />
               </div>
-              <p>{item.name}</p>
+              <p>{sub.name}</p>
             </div>
           ))}
         </div>
@@ -433,31 +514,27 @@ export function MobileHome() {
       {/* Subscriptions List */}
       <section className="home-subscriptions">
         <div className="home-section-title">
-          <h2>All Subscriptions</h2>
+          <h2>
+            {cardSubscriptions.length > 0 ? `•••• ${currentCard.last4} Subscriptions` : 'All Subscriptions'}
+          </h2>
           <SeeAll />
         </div>
         <div className="home-list">
-          {[
-            { name: 'Netflix', brand: 'netflix', price: '$9.40', date: '12 Aug', tone: 'blue' },
-            { name: 'Spotify', brand: 'spotify', price: '$9.99', date: '16 Aug', tone: 'yellow' },
-            { name: 'Medium', brand: 'medium', price: '$20.00', date: '20 Aug', tone: 'green' },
-          ].map((item) => (
-            <Button
-              asChild
-              variant="ghost"
-              className={`home-subscription tone-${item.tone}`}
-              key={item.name}
+          {displayedSubscriptions.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              onClick={() => setSelectedSubscription(item)}
+              className={`home-subscription tone-${item.tone} cursor-pointer text-left w-full border-none`}
             >
-              <Link to="/subscriptions">
-                <Brand name={item.brand} />
-                <span className="home-service-text">
-                  <strong>{item.name}</strong>
-                  <small>Renews on {item.date}</small>
-                </span>
-                <span className="home-service-price">{item.price}</span>
-                <ChevronRight className="row-chevron" />
-              </Link>
-            </Button>
+              <Brand name={item.brand} />
+              <span className="home-service-text">
+                <strong>{item.name}</strong>
+                <small>Renews on {item.nextPayment.split(',')[0]}</small>
+              </span>
+              <span className="home-service-price">{item.price}</span>
+              <ChevronRight className="row-chevron" />
+            </button>
           ))}
         </div>
       </section>
@@ -467,17 +544,20 @@ export function MobileHome() {
         onClose={() => setShowAddModal(false)}
         onCardAdded={handleCardAdded}
       />
+
+      {/* Full Page Subscription Detail Modal */}
+      {selectedSubscription && (
+        <SubscriptionDetail
+          subscription={selectedSubscription}
+          cards={cards}
+          onClose={() => setSelectedSubscription(null)}
+          onUpdateCard={handleUpdateSubCard}
+          onCancelSubscription={handleCancelSubscription}
+        />
+      )}
     </main>
   )
 }
-
-const rows = [
-  { id: 1, name: 'YouTube', brand: 'youtube', price: '$15.00', plan: 'Premium', due: 'Due in 5 days' },
-  { id: 2, name: 'Spotify', brand: 'spotify', price: '$8.99', plan: 'Premium', due: 'Due in 12 days' },
-  { id: 3, name: 'Netflix', brand: 'netflix', price: '$9.40', plan: 'Premium', due: 'Due in 12 days' },
-  { id: 4, name: 'Adobe Creative Cloud', brand: 'adobe', price: '$22.00', plan: 'All Apps', due: 'Due in 10 days' },
-  { id: 5, name: 'Spotify', brand: 'spotify', price: '$15.00', plan: 'Family Plan', due: 'Due in 8 days' },
-]
 
 export function MobileProfile() {
   const navigate = useNavigate()
@@ -1026,7 +1106,52 @@ export function MobileProfile() {
 }
 
 export function MobileSubscriptions() {
-  const [expanded, setExpanded] = useState<number | null>(null)
+  const [cards, setCards] = useState<CardItem[]>([])
+  const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([])
+  const [selectedCardFilter, setSelectedCardFilter] = useState<string>('all')
+  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionItem | null>(null)
+
+  useEffect(() => {
+    const storedCards = getStoredCards()
+    setCards(storedCards)
+    setSubscriptions(getStoredSubscriptions())
+
+    const activeId = getActiveCardId()
+    if (activeId && storedCards.some((c) => c.id === activeId)) {
+      setSelectedCardFilter(activeId)
+    }
+  }, [])
+
+  const handleSelectFilter = (cardId: string) => {
+    setSelectedCardFilter(cardId)
+    if (cardId !== 'all') {
+      saveActiveCardId(cardId)
+    }
+  }
+
+  const handleUpdateSubCard = (subId: string, newCardId: string) => {
+    const updated = subscriptions.map((s) => (s.id === subId ? { ...s, cardId: newCardId } : s))
+    setSubscriptions(updated)
+    saveStoredSubscriptions(updated)
+    if (selectedSubscription && selectedSubscription.id === subId) {
+      setSelectedSubscription({ ...selectedSubscription, cardId: newCardId })
+    }
+  }
+
+  const handleCancelSubscription = (subId: string) => {
+    const updated = subscriptions.filter((s) => s.id !== subId)
+    setSubscriptions(updated)
+    saveStoredSubscriptions(updated)
+    setSelectedSubscription(null)
+  }
+
+  const filteredSubscriptions =
+    selectedCardFilter === 'all'
+      ? subscriptions
+      : subscriptions.filter((s) => s.cardId === selectedCardFilter)
+
+  const activeCardInfo = cards.find((c) => c.id === selectedCardFilter)
+
   return (
     <main className="mobile-screen subscriptions-screen">
       <header className="subscriptions-header">
@@ -1038,55 +1163,114 @@ export function MobileSubscriptions() {
         <h1>My Subscriptions</h1>
         <img src="/logo.png" alt="Paidly" className="w-6 h-6 rounded-lg object-cover" />
       </header>
-      <div className="subscriptions-list">
-        {rows.map((row) => (
-          <article
-            key={row.id}
-            className={`subscription-tile ${expanded === row.id ? 'expanded' : ''}`}
+
+      {/* Card Switcher / Filter Pills */}
+      <section className="mb-4">
+        <div className="flex items-center justify-between px-1 mb-2">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Filter by Card
+          </span>
+          <span className="text-xs text-muted-foreground font-medium">
+            {filteredSubscriptions.length}{' '}
+            {filteredSubscriptions.length === 1 ? 'Subscription' : 'Subscriptions'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => handleSelectFilter('all')}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+              selectedCardFilter === 'all'
+                ? 'bg-[var(--balance)] text-white shadow-xs ring-2 ring-[var(--balance)]/30'
+                : 'bg-accent/80 hover:bg-accent text-foreground/80 border border-border/80'
+            }`}
           >
+            All Cards ({subscriptions.length})
+          </button>
+          {cards.map((c) => {
+            const count = subscriptions.filter((s) => s.cardId === c.id).length
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => handleSelectFilter(c.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
+                  selectedCardFilter === c.id
+                    ? 'bg-[var(--balance)] text-white shadow-xs ring-2 ring-[var(--balance)]/30'
+                    : 'bg-accent/80 hover:bg-accent text-foreground/80 border border-border/80'
+                }`}
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>•••• {c.last4}</span>
+                <span className="text-[10px] opacity-75 font-normal">({count})</span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* Subscriptions List */}
+      <div className="subscriptions-list">
+        {filteredSubscriptions.length > 0 ? (
+          filteredSubscriptions.map((row) => {
+            const card = cards.find((c) => c.id === row.cardId)
+            return (
+              <article key={row.id} className="subscription-tile group">
+                <Button
+                  variant="ghost"
+                  className="subscription-tile-row cursor-pointer"
+                  onClick={() => setSelectedSubscription(row)}
+                  aria-label={`View details for ${row.name}`}
+                >
+                  <Brand name={row.brand} />
+                  <span className="service-text">
+                    <strong>{row.name}</strong>
+                    <small>
+                      {row.plan} • •••• {card?.last4 || '6084'}
+                    </small>
+                  </span>
+                  <span className="service-payment">
+                    <strong>{row.price}</strong>
+                    <small>{row.due}</small>
+                  </span>
+                  <ChevronRight className="row-chevron group-hover:translate-x-0.5 transition-transform" />
+                </Button>
+              </article>
+            )
+          })
+        ) : (
+          <div className="text-center py-12 px-4 rounded-2xl bg-accent/30 border border-dashed border-border space-y-3">
+            <div className="w-12 h-12 rounded-full bg-accent/70 flex items-center justify-center mx-auto text-muted-foreground">
+              <CreditCard className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-foreground">No Subscriptions on this card</h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-[240px] mx-auto">
+                No active recurring charges linked to card •••• {activeCardInfo?.last4}.
+              </p>
+            </div>
             <Button
-              variant="ghost"
-              className="subscription-tile-row"
-              onClick={() => setExpanded(expanded === row.id ? null : row.id)}
-              aria-expanded={expanded === row.id}
+              variant="outline"
+              size="sm"
+              onClick={() => handleSelectFilter('all')}
+              className="text-xs rounded-full h-8"
             >
-              <Brand name={row.brand} />
-              <span className="service-text">
-                <strong>{row.name}</strong>
-                <small>{row.plan}</small>
-              </span>
-              <span className="service-payment">
-                <strong>{row.price}</strong>
-                <small>{row.due}</small>
-              </span>
-              <ChevronRight className="row-chevron" />
+              View All Subscriptions
             </Button>
-            {expanded === row.id && (
-              <div className="expanded-info">
-                <div className="expanded-info-row">
-                  <div>
-                    <span>Payment Info</span>
-                    <small>•••• 6084</small>
-                  </div>
-                  <Button variant="outline" className="manage-button">
-                    Manage
-                  </Button>
-                </div>
-                <div className="expanded-info-row">
-                  <div>
-                    <span>Plan details</span>
-                    <small>{row.plan}</small>
-                  </div>
-                  <Button variant="outline" className="manage-button">
-                    Change
-                  </Button>
-                </div>
-                <Button className="cancel-subscription">Cancel Subscription</Button>
-              </div>
-            )}
-          </article>
-        ))}
+          </div>
+        )}
       </div>
+
+      {/* Full Page Subscription Detail Modal */}
+      {selectedSubscription && (
+        <SubscriptionDetail
+          subscription={selectedSubscription}
+          cards={cards}
+          onClose={() => setSelectedSubscription(null)}
+          onUpdateCard={handleUpdateSubCard}
+          onCancelSubscription={handleCancelSubscription}
+        />
+      )}
     </main>
   )
 }
