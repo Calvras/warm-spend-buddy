@@ -425,48 +425,6 @@ export function MobileHome() {
         </Button>
       </header>
 
-      {/* Interactive Card Switcher Bar */}
-      <section className="mb-3 px-1">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-            Active Card
-          </span>
-          <span className="text-[11px] text-muted-foreground">
-            Card {activeCardIndex + 1} of {cards.length}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {cards.map((c, idx) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => handleSelectCard(idx)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
-                idx === activeCardIndex
-                  ? 'bg-[var(--balance)] text-white shadow-xs ring-2 ring-[var(--balance)]/30'
-                  : 'bg-accent/80 hover:bg-accent text-foreground/80 border border-border/80'
-              }`}
-            >
-              <CreditCard className="w-3.5 h-3.5" />
-              <span>•••• {c.last4}</span>
-              {c.isDefault && (
-                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-black/20 font-medium">
-                  Default
-                </span>
-              )}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className="px-2.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-1 bg-accent/40 hover:bg-accent border border-dashed border-border text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Card</span>
-          </button>
-        </div>
-      </section>
-
       {/* Card Section with FlipCard & Dots */}
       <section className="home-card-section">
         <FlipCard
@@ -475,18 +433,18 @@ export function MobileHome() {
           onFlip={() => setCardFlipped(!cardFlipped)}
         />
         {cards.length > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-3">
+          <div className="flex items-center justify-center gap-2.5 mt-3.5">
             {cards.map((c, idx) => (
               <button
                 key={c.id}
                 type="button"
                 onClick={() => handleSelectCard(idx)}
-                className={`transition-all rounded-full ${
+                className={`transition-all rounded-full cursor-pointer p-1 -m-1 focus:outline-none ${
                   idx === activeCardIndex
-                    ? 'w-5 h-1.5 bg-[var(--balance)]'
-                    : 'w-1.5 h-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60'
+                    ? 'w-6 h-2 bg-[var(--balance)]'
+                    : 'w-2 h-2 bg-muted-foreground/30 hover:bg-muted-foreground/60'
                 }`}
-                aria-label={`Card ${idx + 1}`}
+                aria-label={`Switch to card ${idx + 1} (•••• ${c.last4})`}
               />
             ))}
           </div>
