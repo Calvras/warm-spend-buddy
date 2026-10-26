@@ -2,8 +2,6 @@ import { useState } from 'react'
 import {
   X,
   CreditCard,
-  Check,
-  ChevronDown,
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,27 +9,18 @@ import { type SubscriptionItem, type CardItem } from '@/lib/cards-store'
 
 interface SubscriptionDetailProps {
   subscription: SubscriptionItem
-  cards: CardItem[]
+  cards?: CardItem[]
   onClose: () => void
-  onUpdateCard: (subId: string, newCardId: string) => void
+  onUpdateCard?: (subId: string, newCardId: string) => void
   onCancelSubscription: (subId: string) => void
 }
 
 export function SubscriptionDetail({
   subscription,
-  cards,
   onClose,
-  onUpdateCard,
   onCancelSubscription,
 }: SubscriptionDetailProps) {
-  const [showCardPicker, setShowCardPicker] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
-
-  const linkedCard = cards.find((c) => c.id === subscription.cardId) || cards[0] || {
-    id: 'card-1',
-    last4: '6084',
-    brand: 'visa',
-  }
 
   const renderServiceIcon = (brand: string) => {
     switch (brand) {
@@ -182,64 +171,16 @@ export function SubscriptionDetail({
               <span className="font-semibold text-foreground">{subscription.plan}</span>
             </div>
 
-            {/* Payment Method / Linked Card */}
-            <div className="pt-3.5 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Payment Card</span>
-                <button
-                  type="button"
-                  onClick={() => setShowCardPicker(!showCardPicker)}
-                  className="text-xs font-semibold text-[var(--balance)] hover:underline inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Switch</span>
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-accent/40 border border-border/70 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="uppercase font-bold text-[9px] px-1.5 py-0.5 rounded bg-background border border-border">
-                    {linkedCard.brand}
-                  </span>
-                  <span className="font-semibold text-foreground">•••• {linkedCard.last4}</span>
-                  {linkedCard.holder && (
-                    <span className="text-[11px] text-muted-foreground">({linkedCard.holder})</span>
-                  )}
-                </div>
-                <span className="text-[11px] text-muted-foreground">Exp {linkedCard.expiry}</span>
-              </div>
+            {/* Billing Cycle */}
+            <div className="flex items-center justify-between pt-3.5">
+              <span className="text-xs font-medium text-muted-foreground">Billing Cycle</span>
+              <span className="font-semibold text-foreground">{subscription.cycle} (Auto-renews)</span>
+            </div>
 
-              {/* Inline Card Switcher List */}
-              {showCardPicker && (
-                <div className="space-y-1.5 pt-1 animate-in fade-in duration-200">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">
-                    Select a card:
-                  </span>
-                  {cards.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => {
-                        onUpdateCard(subscription.id, c.id)
-                        setShowCardPicker(false)
-                      }}
-                      className={`w-full flex items-center justify-between p-2 rounded-lg text-xs transition-colors cursor-pointer ${
-                        c.id === subscription.cardId
-                          ? 'bg-[var(--balance)] text-white font-semibold'
-                          : 'bg-background hover:bg-accent border border-border text-foreground'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="uppercase text-[9px] font-bold">{c.brand}</span>
-                        <span>•••• {c.last4}</span>
-                        {c.holder && (
-                          <span className="opacity-75 text-[10px]">({c.holder})</span>
-                        )}
-                      </div>
-                      {c.id === subscription.cardId && <Check className="w-3.5 h-3.5" />}
-                    </button>
-                  ))}
-                </div>
-              )}
+            {/* Renewal Reminder */}
+            <div className="flex items-center justify-between pt-3.5">
+              <span className="text-xs font-medium text-muted-foreground">Renewal Reminder</span>
+              <span className="font-semibold text-foreground">Active (48h alert)</span>
             </div>
 
             {/* Category */}
