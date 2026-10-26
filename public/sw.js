@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paidly-v2';
+const CACHE_NAME = 'paidly-v3';
 
 const STATIC_ASSETS = [
   '/',
