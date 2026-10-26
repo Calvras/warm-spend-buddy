@@ -79,15 +79,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Subly — Subscription Tracker" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
+      { title: "Paidly — Subscription Tracker" },
       { name: "description", content: "Your subscriptions, simply organized." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Subly — Subscription Tracker" },
+      { name: "theme-color", content: "#EA6A43" },
+      { name: "application-name", content: "Paidly" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Paidly" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { property: "og:title", content: "Paidly — Subscription Tracker" },
       { property: "og:description", content: "Your subscriptions, simply organized." },
+      { property: "og:image", content: "/pwa-512x512.png" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Paidly — Subscription Tracker" },
+      { name: "twitter:image", content: "/pwa-512x512.png" },
     ],
     links: [
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" },
@@ -95,7 +102,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -124,6 +135,14 @@ function RootComponent() {
   const showNav = ["/home", "/subscriptions", "/profile"].some((p) =>
     pathname.startsWith(p),
   );
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      });
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
