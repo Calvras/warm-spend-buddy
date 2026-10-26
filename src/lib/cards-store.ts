@@ -295,3 +295,30 @@ export function saveStoredNotifications(settings: NotificationSettings): void {
     localStorage.setItem("paidly_notifications", JSON.stringify(settings));
   } catch {}
 }
+
+export function isUserLoggedIn(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const status = localStorage.getItem("paidly_auth_status");
+    if (status === "logged_out") return false;
+    if (status === "logged_in") return true;
+
+    // For existing users who signed up before this flag was introduced:
+    const cards = localStorage.getItem("paidly_cards");
+    const activeCard = localStorage.getItem("paidly_active_card_id");
+    const profile = localStorage.getItem("paidly_profile");
+    if (cards || activeCard || profile) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+export function setStoredAuth(loggedIn: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("paidly_auth_status", loggedIn ? "logged_in" : "logged_out");
+  } catch {}
+}

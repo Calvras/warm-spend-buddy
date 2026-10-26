@@ -36,6 +36,8 @@ import {
   saveStoredSubscriptions,
   getActiveCardId,
   saveActiveCardId,
+  isUserLoggedIn,
+  setStoredAuth,
   type CardItem,
   type UserProfile,
   type NotificationSettings,
@@ -327,6 +329,7 @@ function AddCardModal({
 }
 
 export function MobileHome() {
+  const navigate = useNavigate()
   const [cards, setCards] = useState<CardItem[]>([])
   const [activeCardIndex, setActiveCardIndex] = useState(0)
   const [cardFlipped, setCardFlipped] = useState(false)
@@ -335,6 +338,11 @@ export function MobileHome() {
   const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionItem | null>(null)
 
   useEffect(() => {
+    if (!isUserLoggedIn()) {
+      navigate({ to: '/auth', replace: true })
+      return
+    }
+
     const storedCards = getStoredCards()
     setCards(storedCards)
     setSubscriptions(getStoredSubscriptions())
@@ -344,7 +352,7 @@ export function MobileHome() {
     if (foundIdx >= 0) {
       setActiveCardIndex(foundIdx)
     }
-  }, [])
+  }, [navigate])
 
   const currentCard = cards[activeCardIndex] || cards[0] || {
     id: 'card-1',
@@ -592,6 +600,11 @@ export function MobileProfile() {
   const [newCardCvv, setNewCardCvv] = useState('')
 
   useEffect(() => {
+    if (!isUserLoggedIn()) {
+      navigate({ to: '/auth', replace: true })
+      return
+    }
+
     const p = getStoredProfile()
     setProfile(p)
     setEditName(p.name)
@@ -600,7 +613,7 @@ export function MobileProfile() {
 
     setCards(getStoredCards())
     setNotifications(getStoredNotifications())
-  }, [])
+  }, [navigate])
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault()
@@ -1090,8 +1103,9 @@ export function MobileProfile() {
               </Button>
               <Button
                 onClick={() => {
+                  setStoredAuth(false)
                   setActiveModal(null)
-                  navigate({ to: '/auth' })
+                  navigate({ to: '/auth', replace: true })
                 }}
                 className="flex-1 text-xs h-9 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
@@ -1106,12 +1120,18 @@ export function MobileProfile() {
 }
 
 export function MobileSubscriptions() {
+  const navigate = useNavigate()
   const [cards, setCards] = useState<CardItem[]>([])
   const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([])
   const [selectedCardFilter, setSelectedCardFilter] = useState<string>('all')
   const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionItem | null>(null)
 
   useEffect(() => {
+    if (!isUserLoggedIn()) {
+      navigate({ to: '/auth', replace: true })
+      return
+    }
+
     const storedCards = getStoredCards()
     setCards(storedCards)
     setSubscriptions(getStoredSubscriptions())
@@ -1120,7 +1140,7 @@ export function MobileSubscriptions() {
     if (activeId && storedCards.some((c) => c.id === activeId)) {
       setSelectedCardFilter(activeId)
     }
-  }, [])
+  }, [navigate])
 
   const handleSelectFilter = (cardId: string) => {
     setSelectedCardFilter(cardId)

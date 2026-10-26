@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { LegalModal, type LegalDocType } from '@/components/legal-modal'
+import { isUserLoggedIn, setStoredAuth, saveStoredProfile } from '@/lib/cards-store'
 
 function DemoCard({checking=false}:{checking?:boolean}) {
  return (
@@ -24,7 +25,17 @@ function DemoCard({checking=false}:{checking?:boolean}) {
 
 export function CardIntro() {
  const navigate=useNavigate()
- useEffect(()=>{const timer=setTimeout(()=>navigate({to:'/auth',replace:true}),3200);return()=>clearTimeout(timer)},[navigate])
+ useEffect(()=>{
+  const loggedIn = isUserLoggedIn()
+  const timer=setTimeout(()=>{
+   if (loggedIn) {
+    navigate({to:'/home',replace:true})
+   } else {
+    navigate({to:'/auth',replace:true})
+   }
+  }, loggedIn ? 1400 : 2800)
+  return()=>clearTimeout(timer)
+ },[navigate])
  return (
   <main className="mobile-screen intro-screen">
    <div className="intro-art">
@@ -50,8 +61,16 @@ export function AuthScreen() {
  const [forgot,setForgot]=useState(false)
  const [sent,setSent]=useState(false)
  const [agreed,setAgreed]=useState(false)
+ const [name,setName]=useState('Daniel Smith')
+ const [email,setEmail]=useState('daniel@example.com')
  const [errorMsg,setErrorMsg]=useState<string|null>(null)
  const [legalDoc,setLegalDoc]=useState<LegalDocType>(null)
+
+ useEffect(()=>{
+  if (isUserLoggedIn()) {
+   navigate({to:'/home',replace:true})
+  }
+ },[navigate])
 
  return (
   <main className="mobile-screen onboarding-screen">
@@ -80,17 +99,38 @@ export function AuthScreen() {
       e.preventDefault();
       if (forgot) {
         setSent(true);
-      } else {
-        if (!login && !agreed) {
-          setErrorMsg("Please accept the Terms of Service and Privacy Policy to continue.");
-          return;
-        }
-        setErrorMsg(null);
-        navigate({to:'/connect-card'});
+        return;
       }
+      if (login) {
+        setStoredAuth(true);
+        navigate({to:'/home',replace:true});
+        return;
+      }
+      if (!agreed) {
+        setErrorMsg("Please accept the Terms of Service and Privacy Policy to continue.");
+        return;
+      }
+      setErrorMsg(null);
+      setStoredAuth(true);
+      if (name.trim()) {
+        const initials = name
+          .trim()
+          .split(' ')
+          .map((w) => w[0])
+          .slice(0, 2)
+          .join('')
+          .toUpperCase() || 'DS';
+        saveStoredProfile({
+          name: name.trim(),
+          email: email.trim() || 'daniel@example.com',
+          phone: '+1 (555) 019-2834',
+          initials,
+        });
+      }
+      navigate({to:'/connect-card'});
     }}>
-     {!login&&!forgot&&<label className="welcome-field">Full name<Input required autoComplete="off" placeholder="Daniel Smith"/></label>}
-     <label className="welcome-field">Email address<Input type="email" required autoComplete="off" placeholder="daniel@example.com"/></label>
+     {!login&&!forgot&&<label className="welcome-field">Full name<Input required value={name} onChange={e=>setName(e.target.value)} autoComplete="off" placeholder="Daniel Smith"/></label>}
+     <label className="welcome-field">Email address<Input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="off" placeholder="daniel@example.com"/></label>
      {!forgot&&<label className="welcome-field">Password<div className="password-field"><Input type={visible?'text':'password'} required minLength={6} autoComplete="off" placeholder="At least 6 characters"/><Button type="button" variant="ghost" size="icon" aria-label={visible?'Hide password':'Show password'} onClick={()=>setVisible(!visible)}>{visible?<EyeOff/>:<Eye/>}</Button></div></label>}
      
      {/* Terms of Service & Privacy Policy checkbox for Sign up */}
@@ -205,7 +245,10 @@ export function ConnectCardScreen() {
      <span>Sample balance</span>
      <strong>$240.50</strong>
      <div className="result-count"><Check/>3 subscriptions found</div>
-     <Button className="welcome-primary" onClick={()=>navigate({to:'/home',replace:true})}>Continue<ArrowRight/></Button>
+     <Button className="welcome-primary" onClick={()=>{
+      setStoredAuth(true);
+      navigate({to:'/home',replace:true});
+     }}>Continue<ArrowRight/></Button>
     </div>
    )}
    <p className="welcome-disclaimer"><LockKeyhole size={12}/> Simulation only. Don’t enter real card details.</p>
