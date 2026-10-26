@@ -17,7 +17,7 @@ function DemoCard({checking=false}:{checking?:boolean}) {
     </div>
    </div>
    <div className="card-chip"><i/><i/><i/></div>
-   <div className="welcome-card-number">•••• &nbsp; •••• &nbsp; •••• &nbsp; 6084</div>
+   <div className="welcome-card-number">Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢ &nbsp; Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢ &nbsp; Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢ &nbsp; 6084</div>
    <div className="welcome-card-bottom"><span>DANIEL SMITH</span><span>09/27</span></div>
   </div>
  )
@@ -147,7 +147,9 @@ export function AuthScreen() {
           className="mt-0.5 cursor-pointer"
         />
         <label htmlFor="terms-agreement" className="select-none cursor-pointer">
-          By using Paidly, you agree to our{" "}
+          I confirm I am{" "}
+          <span className="font-semibold text-foreground">18 years or older</span>
+          {", "}and I agree to Paidly's{" "}
           <button
             type="button"
             onClick={() => setLegalDoc("terms")}
@@ -218,7 +220,7 @@ export function ConnectCardScreen() {
     {stage==='ready'&&<span className="card-success"><Check/></span>}
    </div>
    <div className="onboarding-heading">
-    <h1>{stage==='entry'?'Add your card.':stage==='checking'?'A quick look.':'You’re all set.'}</h1>
+    <h1>{stage==='entry'?'Add your card.':stage==='checking'?'A quick look.':'YouÃ¢â‚¬â„¢re all set.'}</h1>
     <p>{stage==='entry'?'Start with a sample card to see your overview.':stage==='checking'?'Preparing your sample balance and subscriptions.':'Your sample balance and subscriptions are ready.'}</p>
    </div>
    {stage==='entry'?(
@@ -229,7 +231,7 @@ export function ConnectCardScreen() {
       <label className="welcome-field">Expiry date<Input required value={expiry} onChange={e=>setExpiry(e.target.value)} pattern="[0-9]{2}/[0-9]{2}" placeholder="MM/YY" maxLength={5} autoComplete="off"/></label>
       <label className="welcome-field">Sample security code<Input required defaultValue="123" pattern="[0-9]{3,4}" maxLength={4} inputMode="numeric" autoComplete="off"/></label>
      </div>
-     <Button type="submit" className="welcome-primary">Check sample card<ArrowRight/></Button>
+     <Button type="submit" className="welcome-primary">Verify card & link<ArrowRight/></Button>
     </form>
    ):stage==='checking'?(
     <div className="check-steps" aria-live="polite">
@@ -251,7 +253,7 @@ export function ConnectCardScreen() {
      }}>Continue<ArrowRight/></Button>
     </div>
    )}
-   <p className="welcome-disclaimer"><LockKeyhole size={12}/> Simulation only. Don’t enter real card details.</p>
+   <p className="welcome-disclaimer"><LockKeyhole size={12}/> Simulation only. DonÃ¢â‚¬â„¢t enter real card details.</p>
   </main>
  )
 }
