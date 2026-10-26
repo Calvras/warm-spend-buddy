@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ConnectCardRouteImport } from './routes/connect-card'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SubscriptionsRoute = SubscriptionsRouteImport.update({
   id: '/subscriptions',
   path: '/subscriptions',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/connect-card': typeof ConnectCardRoute
   '/home': typeof HomeRoute
+  '/profile': typeof ProfileRoute
   '/subscriptions': typeof SubscriptionsRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/connect-card': typeof ConnectCardRoute
   '/home': typeof HomeRoute
+  '/profile': typeof ProfileRoute
   '/subscriptions': typeof SubscriptionsRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,23 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/connect-card': typeof ConnectCardRoute
   '/home': typeof HomeRoute
+  '/profile': typeof ProfileRoute
   '/subscriptions': typeof SubscriptionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/connect-card' | '/home' | '/subscriptions'
+  fullPaths:
+    '/' | '/auth' | '/connect-card' | '/home' | '/profile' | '/subscriptions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/connect-card' | '/home' | '/subscriptions'
-  id: '__root__' | '/' | '/auth' | '/connect-card' | '/home' | '/subscriptions'
+  to: '/' | '/auth' | '/connect-card' | '/home' | '/profile' | '/subscriptions'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/connect-card'
+    | '/home'
+    | '/profile'
+    | '/subscriptions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +93,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ConnectCardRoute: typeof ConnectCardRoute
   HomeRoute: typeof HomeRoute
+  ProfileRoute: typeof ProfileRoute
   SubscriptionsRoute: typeof SubscriptionsRoute
 }
 
@@ -109,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/subscriptions': {
       id: '/subscriptions'
       path: '/subscriptions'
@@ -124,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ConnectCardRoute: ConnectCardRoute,
   HomeRoute: HomeRoute,
+  ProfileRoute: ProfileRoute,
   SubscriptionsRoute: SubscriptionsRoute,
 }
 export const routeTree = rootRouteImport
