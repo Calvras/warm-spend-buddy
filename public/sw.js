@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paidly-v3';
+const CACHE_NAME = 'paidly-v4';
 
 const STATIC_ASSETS = [
   '/',
@@ -8,6 +8,10 @@ const STATIC_ASSETS = [
   '/favicon-32x32.png',
   '/favicon-16x16.png',
   '/apple-touch-icon.png',
+  '/apple-touch-icon-precomposed.png',
+  '/apple-touch-icon-180x180.png',
+  '/apple-touch-icon-152x152.png',
+  '/apple-touch-icon-120x120.png',
   '/pwa-192x192.png',
   '/pwa-512x512.png',
   '/pwa-maskable-512x512.png',
@@ -43,15 +47,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
 
-  // Only handle GET requests
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
 
-  // Ignore browser extensions or other protocols
   if (!url.protocol.startsWith('http')) return;
 
-  // Navigation requests (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -72,7 +73,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets (CSS, JS, Fonts, Images)
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetchPromise = fetch(request)
