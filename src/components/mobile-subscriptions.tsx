@@ -21,6 +21,9 @@ import {
   Mail,
   ShieldCheck,
   Filter,
+  Search,
+  Sparkles,
+  TrendingUp,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -213,7 +216,7 @@ function AddCardModal({
   onClose: () => void
   onCardAdded: (newCard: CardItem) => void
 }) {
-  const [name, setName] = useState('Daniel Smith')
+  const [name, setName] = useState('')
   const [number, setNumber] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvv, setCvv] = useState('')
@@ -310,7 +313,7 @@ function AddCardModal({
     const last4 = digits.length >= 4 ? digits.slice(-4) : '6084'
     const newCard: CardItem = {
       id: `card-${Date.now()}`,
-      holder: name.trim() || 'Daniel Smith',
+      holder: name.trim() || 'Account Holder',
       number: number.trim() || '4242 4242 4242 6084',
       last4: last4,
       expiry: expiry.trim() || '09/28',
@@ -376,7 +379,7 @@ function AddCardModal({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Daniel Smith"
+              placeholder="e.g. John Doe"
               autoComplete="off"
             />
           </label>
@@ -657,7 +660,7 @@ export function MobileHome() {
 export function MobileProfile() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState<UserProfile>({
-    name: 'Daniel Smith',
+    name: 'Account Holder',
     email: 'daniel@example.com',
     phone: '+1 (555) 019-2834',
     initials: 'DS',
@@ -713,7 +716,7 @@ export function MobileProfile() {
       .toUpperCase() || 'DS'
 
     const updated: UserProfile = {
-      name: editName.trim() || 'Daniel Smith',
+      name: editName.trim() || 'Account Holder',
       email: editEmail.trim() || 'daniel@example.com',
       phone: editPhone.trim() || '+1 (555) 019-2834',
       initials: initials,
@@ -894,7 +897,7 @@ export function MobileProfile() {
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  placeholder="Daniel Smith"
+                  placeholder="Your Name"
                 />
               </label>
               <label className="welcome-field">
@@ -1211,7 +1214,10 @@ export function MobileSubscriptions() {
   const [cards, setCards] = useState<CardItem[]>([])
   const [subscriptions, setSubscriptions] = useState<SubscriptionItem[]>([])
   const [selectedCardFilter, setSelectedCardFilter] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionItem | null>(null)
+  const [showAddCardModal, setShowAddCardModal] = useState(false)
 
   useEffect(() => {
     if (!isUserLoggedIn()) {
@@ -1236,6 +1242,14 @@ export function MobileSubscriptions() {
     }
   }
 
+  const handleCardAdded = (newCard: CardItem) => {
+    const updated = [...cards, newCard]
+    setCards(updated)
+    saveStoredCards(updated)
+    setSelectedCardFilter(newCard.id)
+    saveActiveCardId(newCard.id)
+  }
+
   const handleUpdateSubCard = (subId: string, newCardId: string) => {
     const updated = subscriptions.map((s) => (s.id === subId ? { ...s, cardId: newCardId } : s))
     setSubscriptions(updated)
@@ -1252,35 +1266,92 @@ export function MobileSubscriptions() {
     setSelectedSubscription(null)
   }
 
-  const filteredSubscriptions =
+  // Filter pipeline: Card -> Category -> Search query
+  const byCard =
     selectedCardFilter === 'all'
       ? subscriptions
       : subscriptions.filter((s) => s.cardId === selectedCardFilter)
 
+  const byCategory =
+    selectedCategory === 'all'
+      ? byCard
+      : byCard.filter((s) => (s.category || '').toLowerCase().includes(selectedCategory.toLowerCase()))
+
+  const filteredSubscriptions = byCategory.filter((s) => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase()
+    return s.name.toLowerCase().includes(q) || (s.plan && s.plan.toLowerCase().includes(q))
+  })
+
+  // Financial Insights calculations
+  const totalMonthlySpend = byCard.reduce((acc, sub) => {
+    const price = typeof sub.priceNum === 'number' ? sub.priceNum : parseFloat((sub.price || '0').replace(/[^0-9.]/g, '')) || 0
+    return acc + (sub.cycle === 'Yearly' ? price / 12 : price)
+  }, 0)
+
+  const totalAnnualSpend = totalMonthlySpend * 12
   const activeCardInfo = cards.find((c) => c.id === selectedCardFilter)
+
+  const categories = ['all', 'Entertainment', 'Productivity', 'Music & Audio', 'Transportation']
 
   return (
     <main className="mobile-screen subscriptions-screen">
-      <header className="subscriptions-header">
-        <Button asChild variant="ghost" size="icon" aria-label="Back">
-          <Link to="/home">
-            <ArrowLeft />
-          </Link>
-        </Button>
-        <h1>My Subscriptions</h1>
-        <img src="/logo.png" alt="Paidly" className="w-6 h-6 rounded-lg object-cover" />
+      {/* Top Header */}
+      <header className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="icon" aria-label="Back" className="w-8 h-8 rounded-full hover:bg-accent -ml-1 cursor-pointer">
+            <Link to="/home">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-lg font-bold leading-tight text-foreground">Subscriptions</h1>
+            <p className="text-[11px] text-muted-foreground">Manage recurring commitments</p>
+          </div>
+        </div>
+        <img src="/logo.png" alt="Paidly" className="w-7 h-7 rounded-xl object-cover shadow-2xs" />
       </header>
 
-      {/* Card Switcher / Filter Pills */}
+      {/* Hero Financial Summary Card */}
+      <section className="mb-5 p-4 rounded-3xl bg-gradient-to-br from-[var(--balance)] to-[color-mix(in_oklab,var(--balance)_80%,var(--balance-ink))] text-white shadow-lg relative overflow-hidden">
+        <div className="absolute -right-4 -bottom-6 w-28 h-28 rounded-full bg-white/10 blur-xl pointer-events-none" />
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5 text-xs text-white/80 font-medium">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Monthly Recurring</span>
+          </div>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-white">
+            {byCard.length} Active
+          </span>
+        </div>
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="text-3xl font-extrabold tracking-tight">
+            ${totalMonthlySpend.toFixed(2)}
+          </span>
+          <span className="text-xs text-white/70">/ month</span>
+        </div>
+        <div className="pt-2.5 border-t border-white/20 flex items-center justify-between text-[11px] text-white/85">
+          <span>Est. Annual: <strong>${totalAnnualSpend.toFixed(2)}</strong></span>
+          <span className="opacity-90">{selectedCardFilter === 'all' ? 'Across all cards' : `Card •••• ${activeCardInfo?.last4}`}</span>
+        </div>
+      </section>
+
+      {/* Card Filter Pills */}
       <section className="mb-4">
         <div className="flex items-center justify-between px-1 mb-2">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             Filter by Card
           </span>
-          <span className="text-xs text-muted-foreground font-medium">
-            {filteredSubscriptions.length}{' '}
-            {filteredSubscriptions.length === 1 ? 'Subscription' : 'Subscriptions'}
-          </span>
+          {cards.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAddCardModal(true)}
+              className="text-[11px] font-semibold text-[var(--balance)] hover:underline flex items-center gap-0.5 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Add Card</span>
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
           <button
@@ -1316,8 +1387,48 @@ export function MobileSubscriptions() {
         </div>
       </section>
 
+      {/* Search Input */}
+      <section className="mb-3">
+        <div className="relative">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search subscriptions or plans..."
+            className="pl-9 pr-3 h-10 rounded-2xl bg-accent/40 border-border text-xs"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* Category Filter Chips */}
+      <section className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-4 no-scrollbar">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium shrink-0 transition-colors cursor-pointer ${
+              selectedCategory === cat
+                ? 'bg-foreground text-background font-semibold shadow-2xs'
+                : 'bg-accent/50 hover:bg-accent text-muted-foreground'
+            }`}
+          >
+            {cat === 'all' ? 'All Categories' : cat}
+          </button>
+        ))}
+      </section>
+
       {/* Subscriptions List */}
-      <div className="subscriptions-list">
+      <div className="subscriptions-list space-y-2.5">
         {filteredSubscriptions.length > 0 ? (
           filteredSubscriptions.map((row) => {
             const card = cards.find((c) => c.id === row.cardId)
@@ -1333,12 +1444,12 @@ export function MobileSubscriptions() {
                   <span className="service-text">
                     <strong>{row.name}</strong>
                     <small>
-                      {row.plan} • •••• {card?.last4 || '6084'}
+                      {row.plan || 'Active Subscription'} {card ? `• •••• ${card.last4}` : ''}
                     </small>
                   </span>
                   <span className="service-payment">
                     <strong>{row.price}</strong>
-                    <small>{row.due}</small>
+                    <small>{row.due || 'Active'}</small>
                   </span>
                   <ChevronRight className="row-chevron group-hover:translate-x-0.5 transition-transform" />
                 </Button>
@@ -1346,27 +1457,50 @@ export function MobileSubscriptions() {
             )
           })
         ) : (
-          <div className="text-center py-12 px-4 rounded-2xl bg-accent/30 border border-dashed border-border space-y-3">
-            <div className="w-12 h-12 rounded-full bg-accent/70 flex items-center justify-center mx-auto text-muted-foreground">
+          <div className="text-center py-10 px-4 rounded-3xl bg-accent/30 border border-dashed border-border space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-accent/80 flex items-center justify-center mx-auto text-muted-foreground shadow-2xs">
               <CreditCard className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-foreground">No Subscriptions on this card</h3>
+              <h3 className="text-sm font-bold text-foreground">
+                {searchQuery ? 'No matching subscriptions' : 'No Subscriptions Found'}
+              </h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-[240px] mx-auto">
-                No active recurring charges linked to card •••• {activeCardInfo?.last4}.
+                {searchQuery
+                  ? `No subscriptions match "${searchQuery}". Try clearing search.`
+                  : selectedCardFilter !== 'all'
+                  ? `No active recurring charges linked to card •••• ${activeCardInfo?.last4}.`
+                  : 'Connect your bank account to automatically scan and detect subscriptions.'}
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSelectFilter('all')}
-              className="text-xs rounded-full h-8"
-            >
-              View All Subscriptions
-            </Button>
+            {selectedCardFilter !== 'all' ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSelectFilter('all')}
+                className="text-xs rounded-full h-8 cursor-pointer"
+              >
+                View All Subscriptions
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => setShowAddCardModal(true)}
+                className="welcome-primary text-xs rounded-full h-8 px-4 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                Connect Bank / Card
+              </Button>
+            )}
           </div>
         )}
       </div>
+
+      <AddCardModal
+        isOpen={showAddCardModal}
+        onClose={() => setShowAddCardModal(false)}
+        onCardAdded={handleCardAdded}
+      />
 
       {/* Full Page Subscription Detail Modal */}
       {selectedSubscription && (

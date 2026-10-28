@@ -22,9 +22,27 @@
  --logo-bg:oklch(0.987 0.009 88 / 72%); --logo-border:oklch(0.882 0.015 88 / 55%);
 }
 * { box-sizing:border-box; border-color:var(--border); letter-spacing:0; }
-body { margin:0; background:var(--background); color:var(--foreground); font-family:Arial,Helvetica,sans-serif; }
+html {
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+body {
+  margin:0;
+  background:var(--background);
+  color:var(--foreground);
+  font-family:Arial,Helvetica,sans-serif;
+  overscroll-behavior-y: none;
+  -webkit-overscroll-behavior-y: none;
+}
 button,a { -webkit-tap-highlight-color:transparent; } button { font-family:inherit; }
-.mobile-screen { width:100%; max-width:390px; margin:0 auto; min-height:100dvh; background:var(--background); }
+.mobile-screen {
+  width:100%;
+  max-width:390px;
+  margin:0 auto;
+  min-height:100dvh;
+  background:var(--background);
+  overscroll-behavior-y: none;
+}
 .home-screen { padding:24px 17px 23px; }
 .home-header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; margin-bottom:19px; }
 .person { display:flex; min-width:0; align-items:center; gap:14px; }.person img { width:76px; height:76px; border-radius:50%; object-fit:cover; flex-shrink:0; }
