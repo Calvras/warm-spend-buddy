@@ -115,16 +115,22 @@ export function LegalModal({ type, onClose }: LegalModalProps) {
                     and hosted algorithmic calculation mechanisms utilized to catalogue, project, and monitor recurring expenses.
                   </li>
                   <li>
-                    <strong className="text-foreground">1.3 &ldquo;Payment Card Data&rdquo;</strong> refers to simulated, demo,
-                    or user-entered financial card metadata, including cardholder name, truncated card digits, expiration tokens, and CVV representations.
+                    <strong className="text-foreground">1.3 &ldquo;Payment Card Data & Bank Connections&rdquo;</strong> refers to
+                    connected financial accounts, aggregated statement feeds, and user-entered card metadata, including cardholder alias,
+                    truncated last four digits, expiry indicators, and secure API authorization tokens managed through accredited banking aggregators (such as Plaid Inc.).
                   </li>
                   <li>
-                    <strong className="text-foreground">1.4 &ldquo;Third-Party Provider&rdquo;</strong> refers to autonomous
+                    <strong className="text-foreground">1.4 &ldquo;Open Banking Aggregators&rdquo;</strong> refers to accredited financial
+                    technology intermediaries (specifically Plaid Technologies, Inc.) that facilitate secure end-user permissioned access
+                    to depository account transaction records and recurring stream indicators.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">1.5 &ldquo;Third-Party Provider&rdquo;</strong> refers to autonomous
                     external corporations (including but not limited to Spotify AB, Netflix Inc., Google LLC, Apple Inc., and Adobe Inc.)
                     whose independent recurring service terms govern their respective memberships.
                   </li>
                   <li>
-                    <strong className="text-foreground">1.5 &ldquo;Applicable Privacy Laws&rdquo;</strong> refers collectively to
+                    <strong className="text-foreground">1.6 &ldquo;Applicable Privacy Laws&rdquo;</strong> refers collectively to
                     the General Data Protection Regulation (EU 2016/679) (&ldquo;GDPR&rdquo;), the California Consumer Privacy Act of 2018
                     as amended by the California Privacy Rights Act (&ldquo;CCPA/CPRA&rdquo;), and related statutory data protection enactments.
                   </li>
@@ -171,19 +177,25 @@ export function LegalModal({ type, onClose }: LegalModalProps) {
               {/* Section 4 */}
               <section className="pt-4 space-y-2">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wide">
-                  Section 4. Multi-Card Wallet Simulation & Sandbox Environment
+                  Section 4. Bank Connectivity, Plaid Integration & Multi-Card Wallet
                 </h4>
                 <p className="text-muted-foreground">
-                  Paidly features a multi-card organizational wallet enabling Users to associate specific subscription
-                  obligations with designated credit, debit, or prepaid accounts. Users are explicitly instructed NOT to
-                  input verified Primary Account Numbers (PANs) subject to Payment Card Industry Data Security Standards (PCI-DSS)
-                  into unencrypted demo fields.
+                  Paidly enables users to securely link depository and credit accounts through Plaid Technologies, Inc.
+                  (&ldquo;Plaid&rdquo;) to automatically detect and monitor recurring subscriptions. By utilizing Plaid Link, you
+                  grant Paidly and Plaid the right, power, and authority to access and transmit your personal and financial
+                  information from the relevant financial institution on your behalf. You agree to your personal and financial
+                  information being transferred, stored, and processed by Plaid in accordance with the Plaid End User Privacy Policy
+                  (available at https://plaid.com/legal).
                 </p>
                 <p className="text-muted-foreground">
-                  Paidly maintains zero custody over fiat deposits. Any &ldquo;Sample Balance&rdquo; or &ldquo;Card Limit&rdquo;
-                  rendered within onboarding or dashboard cards represents a simulated baseline designed to facilitate
-                  expenditure categorization. Paidly disclaims any liability for transaction declines, insufficient balance fees,
-                  or bank penalties assessed by your actual card issuers.
+                  Paidly does not store raw bank login credentials, passwords, PINs, or full 16-digit Primary Account Numbers (PANs).
+                  All sensitive credential handshakes occur directly within Plaid&rsquo;s encrypted environment. For manual cards added
+                  directly by users, only non-sensitive descriptors (truncated last 4 digits, cardholder alias, brand) are maintained.
+                </p>
+                <p className="text-muted-foreground">
+                  Paidly maintains zero custody over fiat deposits or monetary balances. Paidly disclaims any liability for transaction
+                  declines, insufficient balance fees, subscription renewal disputes, or penalties assessed by your financial institutions
+                  or merchants.
                 </p>
               </section>
 
@@ -406,10 +418,11 @@ export function LegalModal({ type, onClose }: LegalModalProps) {
                     billing recurrence frequency (weekly, monthly, annual), estimated currency allocations, and billing history logs.
                   </li>
                   <li>
-                    <strong className="text-foreground font-semibold">Category C — Card Assignment & Wallet References:</strong>
-                    Non-sensitive card descriptors, including cardholder name display aliases, truncated last 4 account digits,
-                    expiration indicators, and card association types (Visa, Mastercard). We NEVER store full 16-digit Primary
-                    Account Numbers (PAN) or security CVV codes on remote database infrastructure.
+                    <strong className="text-foreground font-semibold">Category C — Card Descriptors & Open Banking Tokens:</strong>
+                    Non-sensitive card and account descriptors, including cardholder display alias, truncated last 4 digits (e.g. &ldquo;•••• 6084&rdquo;),
+                    expiration markers, and card brand identifiers (Visa, Mastercard). For accounts linked via Plaid Link, secure temporary access tokens
+                    and recurring transaction metadata are processed in accordance with Plaid&rsquo;s security framework. We NEVER capture or store
+                    raw banking passwords, login credentials, or full 16-digit card numbers on our servers.
                   </li>
                   <li>
                     <strong className="text-foreground font-semibold">Category D — Device Telemetry & Session Diagnostics:</strong>
@@ -491,26 +504,32 @@ export function LegalModal({ type, onClose }: LegalModalProps) {
                   Each sub-processor is bound by strict Data Processing Agreements (DPAs) requiring adherence to equivalent privacy standards:
                 </p>
                 <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                  <li><strong className="text-foreground font-semibold">Hosting & Server Infrastructure:</strong> Render Services Inc. (Secure SOC2-certified cloud infrastructure);</li>
-                  <li><strong className="text-foreground font-semibold">Error Monitoring & Diagnostics:</strong> Encrypted telemetry engines with PII masking;</li>
-                  <li><strong className="text-foreground font-semibold">DNS & SSL Edge Delivery:</strong> Cloudflare Inc. (DDoS mitigation and global edge CDN).</li>
+                  <li><strong className="text-foreground font-semibold">Financial Data Aggregation & Open Banking:</strong> Plaid Inc. (facilitates secure, read-only consumer-permissioned financial data feeds under the Plaid End User Privacy Policy);</li>
+                  <li><strong className="text-foreground font-semibold">Hosting & Server Infrastructure:</strong> Render Services Inc. (SOC2-certified cloud application environment, enforcing TLS 1.2+ encryption in-transit);</li>
+                  <li><strong className="text-foreground font-semibold">Error Monitoring & Diagnostics:</strong> Automated diagnostic and build engines with zero persistence of consumer financial credentials;</li>
+                  <li><strong className="text-foreground font-semibold">DNS & SSL Edge Delivery:</strong> Cloudflare Inc. (global edge security, TLS termination, and DDoS mitigation).</li>
                 </ul>
               </section>
 
               {/* Privacy 7 */}
               <section className="pt-4 space-y-2">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wide">
-                  7. Data Security, Cryptographic Protocols & Breach Response
+                  7. Data Security, Cryptographic Protocols & Ephemeral Processing
                 </h4>
                 <p className="text-muted-foreground">
-                  We implement robust administrative, physical, and technical safeguards engineered to prevent unauthorized access,
-                  alteration, destruction, or disclosure of your data. All network communications are mandated over Transport Layer Security
-                  (TLS 1.3) with strict HTTP Strict Transport Security (HSTS) headers.
+                  We implement administrative and technical safeguards designed to safeguard your information. All network
+                  communications are strictly enforced over Transport Layer Security (TLS 1.2 or higher) with modern HTTPS cipher suites.
                 </p>
                 <p className="text-muted-foreground">
-                  In the improbable event of a validated security incident affecting personal data, Paidly maintains a computerized
-                  Incident Response Plan complying with Article 33 of the GDPR, providing formal notification to relevant supervisory
-                  authorities and affected data subjects without undue delay (within 72 hours of verification).
+                  Consumer financial data received via Plaid API is processed in memory and on-demand to identify active subscriptions.
+                  Paidly does not retain raw financial transaction databases or unencrypted banking ledgers at rest.
+                  In accordance with statutory mandates, our security measures and third-party dependencies are continuously monitored
+                  and patched via automated vulnerability management controls.
+                </p>
+                <p className="text-muted-foreground">
+                  In the event of a confirmed security incident affecting personal data, Paidly maintains procedures complying with
+                  Article 33 of the GDPR and applicable consumer reporting guidelines to notify relevant authorities and affected individuals
+                  without undue delay.
                 </p>
               </section>
 
@@ -534,12 +553,18 @@ export function LegalModal({ type, onClose }: LegalModalProps) {
               {/* Privacy 9 */}
               <section className="pt-4 space-y-2">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wide">
-                  9. Data Retention Schedules
+                  9. Data Retention & Deletion Policy
                 </h4>
                 <p className="text-muted-foreground">
-                  We retain personal information only for as long as your account remains active or as strictly required to fulfill
-                  the purposes outlined in this policy. Upon receipt of a verified account deletion request, your account data is
-                  purged from active database clusters within thirty (30) days, and subsequently overwritten in encrypted rolling backups.
+                  We adhere to strict data minimization principles. Financial account and subscription metadata is retained on your
+                  device only for as long as your account is maintained. Because Paidly does not persist your sensitive financial
+                  records in remote databases at rest, clearing your device session or requesting account termination immediately purges
+                  locally cached tokens, active card assignments, and subscription views.
+                </p>
+                <p className="text-muted-foreground">
+                  Users may also revoke Paidly&rsquo;s authorization to access bank account data at any time either directly within
+                  their financial institution&rsquo;s portal or by submitting an explicit deletion request to privacy@paidly.app,
+                  which prompts the immediate invalidation of associated Plaid access tokens.
                 </p>
               </section>
 
