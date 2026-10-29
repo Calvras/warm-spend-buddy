@@ -1,7 +1,9 @@
 {
+  "id": "/",
   "name": "Paidly",
   "short_name": "Paidly",
   "description": "Your subscriptions, simply organized.",
+  "lang": "en",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
