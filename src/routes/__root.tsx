@@ -13,6 +13,9 @@ import { BottomNav } from "@/components/mobile-subscriptions";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+// iOS 27's Add to Home Screen loader ignores network apple-touch-icon URLs
+// (it falls back to a letter tile), but accepts a data: URI.
+import appleTouchIcon from "../assets/apple-touch-icon-180x180.png?inline";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -102,9 +105,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon-180x180.png?v=2" },
-      { rel: "apple-touch-icon", sizes: "152x152", href: "/apple-touch-icon-152x152.png?v=2" },
-      { rel: "apple-touch-icon", sizes: "120x120", href: "/apple-touch-icon-120x120.png?v=2" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: appleTouchIcon },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
