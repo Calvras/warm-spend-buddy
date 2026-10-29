@@ -98,13 +98,6 @@ export function AuthScreen() {
 
   return (
     <main className="mobile-screen onboarding-screen">
-      <header className="onboarding-top">
-        <Button asChild variant="ghost" size="icon" aria-label="Back">
-          <Link to="/">
-            <ArrowLeft />
-          </Link>
-        </Button>
-      </header>
       <div className="auth-mark overflow-hidden shadow-sm">
         <img src="/logo.png" alt="Paidly Logo" className="w-full h-full object-cover rounded-[15px]" />
       </div>
