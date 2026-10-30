@@ -61,7 +61,7 @@ function WelcomeIntroModal({ onContinue }: { onContinue: () => void }) {
       {/* Half-screen sheet + 14px */}
       <div
         className="relative z-50 w-full max-w-[480px] mx-auto bg-background rounded-t-[28px] shadow-2xl flex flex-col pointer-events-auto transition-transform duration-500 ease-out border-t border-border/50"
-        style={{ height: 'calc(52dvh + 14px)', transform: visible ? 'translateY(0)' : 'translateY(100%)' }}
+        style={{ height: 'calc(54dvh + 14px)', transform: visible ? 'translateY(0)' : 'translateY(100%)' }}
       >
         {/* Drag handle indicator */}
         <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mx-auto mt-3.5 mb-1 flex-shrink-0" />
@@ -75,24 +75,41 @@ function WelcomeIntroModal({ onContinue }: { onContinue: () => void }) {
           </p>
         </div>
 
-        {/* Punchy Details & Highlights without emojis */}
-        <div className="flex flex-col flex-1 justify-center px-7 py-1 text-center">
-          <p className="text-[0.92rem] text-muted-foreground leading-relaxed max-w-[320px] mx-auto">
-            Take total control of recurring charges. Connect your card or bank to track renewals, cut unwanted fees, and protect your budget.
+        {/* Punchy Details & Highlights List */}
+        <div className="flex flex-col flex-1 justify-center px-7 py-2">
+          <p className="text-[0.92rem] text-muted-foreground text-center leading-relaxed max-w-[320px] mx-auto mb-4">
+            Take total control of recurring charges. Connect your card or bank to track renewals and cut unwanted fees.
           </p>
 
-          <div className="grid grid-cols-3 gap-2.5 mt-5 max-w-[340px] mx-auto w-full">
-            <div className="flex flex-col items-center text-center p-2.5 rounded-xl bg-muted/40 border border-border/40">
-              <span className="text-[0.72rem] font-semibold text-foreground uppercase tracking-wider">Sync</span>
-              <span className="text-[0.7rem] text-muted-foreground mt-0.5 leading-tight">Instant bank & card link</span>
+          <div className="flex flex-col gap-3.5 max-w-[340px] mx-auto w-full text-left">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                <Check className="w-3 h-3 stroke-[2.5]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[0.88rem] font-medium text-foreground leading-snug">Instant account connection</p>
+                <p className="text-[0.78rem] text-muted-foreground leading-tight mt-0.5">Link your bank or cards in seconds</p>
+              </div>
             </div>
-            <div className="flex flex-col items-center text-center p-2.5 rounded-xl bg-muted/40 border border-border/40">
-              <span className="text-[0.72rem] font-semibold text-foreground uppercase tracking-wider">Detect</span>
-              <span className="text-[0.7rem] text-muted-foreground mt-0.5 leading-tight">Auto recurring tracker</span>
+
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                <Check className="w-3 h-3 stroke-[2.5]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[0.88rem] font-medium text-foreground leading-snug">Automatic subscription detection</p>
+                <p className="text-[0.78rem] text-muted-foreground leading-tight mt-0.5">Find recurring charges and upcoming renewals</p>
+              </div>
             </div>
-            <div className="flex flex-col items-center text-center p-2.5 rounded-xl bg-muted/40 border border-border/40">
-              <span className="text-[0.72rem] font-semibold text-foreground uppercase tracking-wider">Secure</span>
-              <span className="text-[0.7rem] text-muted-foreground mt-0.5 leading-tight">Read-only protection</span>
+
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                <Check className="w-3 h-3 stroke-[2.5]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[0.88rem] font-medium text-foreground leading-snug">Bank-grade security</p>
+                <p className="text-[0.78rem] text-muted-foreground leading-tight mt-0.5">Read-only access, credentials are never stored</p>
+              </div>
             </div>
           </div>
         </div>
