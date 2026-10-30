@@ -42,9 +42,83 @@ function CardVisual({ checking = false, cardNumber = '••••', holderName 
   )
 }
 
+
+function WelcomeIntroModal({ onContinue }: { onContinue: () => void }) {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    // Small delay so the slide-up animation is visible after page load
+    const t = setTimeout(() => setVisible(true), 200)
+    return () => clearTimeout(t)
+  }, [])
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end pointer-events-none">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300"
+        style={{ opacity: visible ? 1 : 0 }}
+      />
+      {/* Half-screen sheet */}
+      <div
+        className="relative z-50 w-full max-w-[480px] mx-auto bg-background rounded-t-[28px] shadow-2xl flex flex-col pointer-events-auto transition-transform duration-500 ease-out"
+        style={{ height: '52dvh', transform: visible ? 'translateY(0)' : 'translateY(100%)' }}
+      >
+        {/* Drag handle */}
+        <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mx-auto mt-3 mb-0 flex-shrink-0" />
+
+        {/* Content */}
+        <div className="flex flex-col items-center justify-center flex-1 px-7 pb-2 text-center gap-4">
+          <div className="flex flex-col items-center gap-1">
+            <img src="/logo.png" alt="Paidly" className="w-14 h-14 rounded-2xl shadow-md mb-1" />
+            <h1 className="text-[2rem] font-bold tracking-tight leading-none">Paidly</h1>
+          </div>
+
+          <p className="text-[0.95rem] text-muted-foreground leading-relaxed max-w-[280px]">
+            Finally know what you're paying for every month.{' '}
+            <span className="text-foreground font-medium">Connect your card or bank</span> and Paidly
+            automatically finds your subscriptions — no manual entry, no guessing.
+          </p>
+
+          <div className="flex flex-col gap-2 w-full text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🔍</span>
+              <span>Auto-detects recurring charges</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-base">🔒</span>
+              <span>Bank-level security, read-only access</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-base">💸</span>
+              <span>See exactly what you spend, instantly</span>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="px-6 pb-8 pt-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onContinue}
+            className="w-full h-12 rounded-2xl font-semibold text-[0.95rem] bg-foreground text-background transition-opacity active:opacity-80"
+          >
+            Get Started
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 export function CardIntro() {
   const navigate = useNavigate()
+  const [showIntro, setShowIntro] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return !localStorage.getItem('paidly_welcomed')
+  })
+
   useEffect(() => {
+    if (showIntro) return // wait for user to tap Continue
     const loggedIn = isUserLoggedIn()
     const timer = setTimeout(() => {
       if (loggedIn) {
@@ -54,10 +128,17 @@ export function CardIntro() {
       }
     }, loggedIn ? 1400 : 2800)
     return () => clearTimeout(timer)
-  }, [navigate])
+  }, [navigate, showIntro])
+
+  function handleIntroContinue() {
+    localStorage.setItem('paidly_welcomed', '1')
+    setShowIntro(false)
+    navigate({ to: '/auth', replace: true })
+  }
 
   return (
     <main className="mobile-screen intro-screen">
+      {showIntro && <WelcomeIntroModal onContinue={handleIntroContinue} />}
       <div className="intro-art">
         <div className="card-shadow" />
         <CardVisual />
