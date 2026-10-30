@@ -47,8 +47,7 @@ function WelcomeIntroModal({ onContinue }: { onContinue: () => void }) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    // Small delay so the slide-up animation is visible after page load
-    const t = setTimeout(() => setVisible(true), 200)
+    const t = setTimeout(() => setVisible(true), 150)
     return () => clearTimeout(t)
   }, [])
 
@@ -59,51 +58,53 @@ function WelcomeIntroModal({ onContinue }: { onContinue: () => void }) {
         className="fixed inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300"
         style={{ opacity: visible ? 1 : 0 }}
       />
-      {/* Half-screen sheet */}
+      {/* Half-screen sheet + 14px */}
       <div
-        className="relative z-50 w-full max-w-[480px] mx-auto bg-background rounded-t-[28px] shadow-2xl flex flex-col pointer-events-auto transition-transform duration-500 ease-out"
-        style={{ height: '52dvh', transform: visible ? 'translateY(0)' : 'translateY(100%)' }}
+        className="relative z-50 w-full max-w-[480px] mx-auto bg-background rounded-t-[28px] shadow-2xl flex flex-col pointer-events-auto transition-transform duration-500 ease-out border-t border-border/50"
+        style={{ height: 'calc(52dvh + 14px)', transform: visible ? 'translateY(0)' : 'translateY(100%)' }}
       >
-        {/* Drag handle */}
-        <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mx-auto mt-3 mb-0 flex-shrink-0" />
+        {/* Drag handle indicator */}
+        <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mx-auto mt-3.5 mb-1 flex-shrink-0" />
 
-        {/* Content */}
-        <div className="flex flex-col items-center justify-center flex-1 px-7 pb-2 text-center gap-4">
-          <div className="flex flex-col items-center gap-1">
-            <img src="/logo.png" alt="Paidly" className="w-14 h-14 rounded-2xl shadow-md mb-1" />
-            <h1 className="text-[2rem] font-bold tracking-tight leading-none">Paidly</h1>
-          </div>
+        {/* Header & Brand */}
+        <div className="flex flex-col items-center px-6 pt-2 pb-1 text-center">
+          <img src="/logo.png" alt="Paidly" className="w-12 h-12 rounded-2xl shadow-sm mb-2.5 object-cover" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Paidly</h1>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium mt-0.5">
+            Smart Subscription Tracker
+          </p>
+        </div>
 
-          <p className="text-[0.95rem] text-muted-foreground leading-relaxed max-w-[280px]">
-            Finally know what you're paying for every month.{' '}
-            <span className="text-foreground font-medium">Connect your card or bank</span> and Paidly
-            automatically finds your subscriptions — no manual entry, no guessing.
+        {/* Punchy Details & Highlights without emojis */}
+        <div className="flex flex-col flex-1 justify-center px-7 py-1 text-center">
+          <p className="text-[0.92rem] text-muted-foreground leading-relaxed max-w-[320px] mx-auto">
+            Take total control of recurring charges. Connect your card or bank to track renewals, cut unwanted fees, and protect your budget.
           </p>
 
-          <div className="flex flex-col gap-2 w-full text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <span className="text-base">🔍</span>
-              <span>Auto-detects recurring charges</span>
+          <div className="grid grid-cols-3 gap-2.5 mt-5 max-w-[340px] mx-auto w-full">
+            <div className="flex flex-col items-center text-center p-2.5 rounded-xl bg-muted/40 border border-border/40">
+              <span className="text-[0.72rem] font-semibold text-foreground uppercase tracking-wider">Sync</span>
+              <span className="text-[0.7rem] text-muted-foreground mt-0.5 leading-tight">Instant bank & card link</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-base">🔒</span>
-              <span>Bank-level security, read-only access</span>
+            <div className="flex flex-col items-center text-center p-2.5 rounded-xl bg-muted/40 border border-border/40">
+              <span className="text-[0.72rem] font-semibold text-foreground uppercase tracking-wider">Detect</span>
+              <span className="text-[0.7rem] text-muted-foreground mt-0.5 leading-tight">Auto recurring tracker</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-base">💸</span>
-              <span>See exactly what you spend, instantly</span>
+            <div className="flex flex-col items-center text-center p-2.5 rounded-xl bg-muted/40 border border-border/40">
+              <span className="text-[0.72rem] font-semibold text-foreground uppercase tracking-wider">Secure</span>
+              <span className="text-[0.7rem] text-muted-foreground mt-0.5 leading-tight">Read-only protection</span>
             </div>
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="px-6 pb-8 pt-2 flex-shrink-0">
+        {/* Continue Action */}
+        <div className="px-6 pb-8 pt-3 flex-shrink-0">
           <button
             type="button"
             onClick={onContinue}
-            className="w-full h-12 rounded-2xl font-semibold text-[0.95rem] bg-foreground text-background transition-opacity active:opacity-80"
+            className="w-full h-12 rounded-2xl font-semibold text-[0.95rem] bg-foreground text-background transition-opacity active:opacity-85 shadow-sm"
           >
-            Get Started
+            Continue
           </button>
         </div>
       </div>
